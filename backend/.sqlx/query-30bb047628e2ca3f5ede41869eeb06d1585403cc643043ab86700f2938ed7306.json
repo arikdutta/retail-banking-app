@@ -1,0 +1,103 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                WITH unique_bugs AS (\n                    SELECT DISTINCT ON (similarityhash)\n                        id, unid, bugtype, similarityhash, message, exceptionmessage,\n                        stacktrace, userlogin, url, useragent, application, created\n                    FROM public.bugreports\n                    WHERE (LOWER(message) LIKE $3 OR LOWER(exceptionmessage) LIKE $3)\n                        AND ($4::varchar IS NULL OR bugtype = $4)\n                    ORDER BY similarityhash, created DESC\n                ),\n                counted AS (\n                    SELECT u.*,\n                        (SELECT COUNT(*) FROM public.bugreports b2 WHERE b2.similarityhash = u.similarityhash) AS similar_count\n                    FROM unique_bugs u\n                )\n                SELECT\n                    id, unid, bugtype, similarityhash, message, exceptionmessage,\n                    stacktrace, userlogin, url, useragent, application, created,\n                    COUNT(*) OVER() AS \"total_count!\",\n                    similar_count AS \"similar_count!\"\n                FROM counted\n                ORDER BY created DESC\n                LIMIT $1 OFFSET $2\n                ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "unid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "bugtype",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "similarityhash",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "message",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "exceptionmessage",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "stacktrace",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "userlogin",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 8,
+        "name": "url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "useragent",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 10,
+        "name": "application",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 11,
+        "name": "created",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 12,
+        "name": "total_count!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 13,
+        "name": "similar_count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8",
+        "Text",
+        "Varchar"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "30bb047628e2ca3f5ede41869eeb06d1585403cc643043ab86700f2938ed7306"
+}

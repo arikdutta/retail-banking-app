@@ -1,0 +1,91 @@
+@base = http://localhost:3001
+
+# ─────────────────────────────────────────
+# HEALTH
+# ─────────────────────────────────────────
+
+### Health check
+GET {{base}}/health
+
+# ─────────────────────────────────────────
+# AUTH (public)
+# ─────────────────────────────────────────
+
+### Login
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "root@example.com",
+  "password": "password123"
+}
+
+### Logout
+POST {{base}}/api/auth/logout
+
+# ─────────────────────────────────────────
+# AUTH (protected)
+# ─────────────────────────────────────────
+
+### Me (current user)
+GET {{base}}/api/auth/me
+
+# ─────────────────────────────────────────
+# DASHBOARD (protected)
+# ─────────────────────────────────────────
+
+### Stats
+GET {{base}}/api/dashboard/stats
+
+### Users list
+GET {{base}}/api/dashboard/users
+
+# ─────────────────────────────────────────
+# ROLE ACCESSES (protected)
+# ─────────────────────────────────────────
+
+### All role accesses
+GET {{base}}/api/roleaccesses
+
+### My roles
+GET {{base}}/api/roleaccesses/mine
+
+### Root check
+GET {{base}}/api/roleaccesses/root-check
+
+# ─────────────────────────────────────────
+# BUG REPORTS (public: POST | protected: GET/DELETE)
+# ─────────────────────────────────────────
+
+### Create bug report (public)
+POST {{base}}/api/bugreports
+Content-Type: application/json
+
+{
+  "bug_type": "Bug",
+  "message": "Uncaught TypeError: Cannot read properties of undefined",
+  "exception_message": "TypeError: Cannot read properties of undefined (reading 'id')",
+  "stack_trace": "at Component.render (app.js:42)\n  at updateTree (react-dom.js:100)",
+  "user_login": "root@example.com",
+  "url": "http://localhost:3000/dashboard",
+  "user_agent": "Mozilla/5.0",
+  "application": "frontend"
+}
+
+### List bug reports (protected)
+GET {{base}}/api/bugreports
+
+### List bug reports — paginated + filtered
+GET {{base}}/api/bugreports?page=1&per_page=20&bug_type=Bug
+
+### List bug reports — search
+GET {{base}}/api/bugreports?search=TypeError
+
+### Get single bug report (protected)
+GET {{base}}/api/bugreports/{{unid}}
+
+### Charts (protected)
+GET {{base}}/api/bugreports/charts
+
+### Delete all bug reports (protected)
+DELETE {{base}}/api/bugreports

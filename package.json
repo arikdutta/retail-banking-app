@@ -1,0 +1,23 @@
+{
+  "name": "fullstack-auth-typescript",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "concurrently -n backend,app -c magenta,cyan --kill-others-on-fail \"cd backend && cargo run\" \"wait-on tcp:3001 && cd frontend && pnpm dev\"",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.5",
+    "concurrently": "^9.1.2",
+    "typescript": "5.9.3",
+    "wait-on": "^9.0.5"
+  },
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": ">=20"
+  }
+}

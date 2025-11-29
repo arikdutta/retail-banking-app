@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                to_char(created::date, 'YYYY-MM-DD') AS \"date!\",\n                bugtype AS \"bug_type!\",\n                COUNT(*) AS \"count!\"\n            FROM public.bugreports\n            WHERE created >= CURRENT_DATE - $1::integer\n            GROUP BY created::date, bugtype\n            ORDER BY created::date ASC, bugtype ASC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "date!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "bug_type!",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null,
+      false,
+      null
+    ]
+  },
+  "hash": "f8cd9ae4a4d0545fa224a9da335b60817b1ed91ab8ed0d0c97dfbc0f198c473c"
+}
