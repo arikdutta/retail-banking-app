@@ -14,8 +14,16 @@ import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as AccountRouteRouteImport } from './routes/account/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as DashboardWalletsRouteImport } from './routes/dashboard/wallets'
 import { Route as DashboardUsersRouteImport } from './routes/dashboard/users'
+import { Route as DashboardTransactionsRouteImport } from './routes/dashboard/transactions'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
+import { Route as DashboardRecipientsRouteImport } from './routes/dashboard/recipients'
+import { Route as DashboardMessagesRouteImport } from './routes/dashboard/messages'
+import { Route as DashboardInvoicesRouteImport } from './routes/dashboard/invoices'
+import { Route as DashboardHelpRouteImport } from './routes/dashboard/help'
 import { Route as DashboardBugreportsRouteImport } from './routes/dashboard/bugreports'
+import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard/analytics'
 import { Route as DashboardAccessDemoRouteImport } from './routes/dashboard/access-demo'
 import { Route as AccountProfileRouteImport } from './routes/account/profile'
 
@@ -44,14 +52,54 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const DashboardWalletsRoute = DashboardWalletsRouteImport.update({
+  id: '/wallets',
+  path: '/wallets',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardUsersRoute = DashboardUsersRouteImport.update({
   id: '/users',
   path: '/users',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const DashboardTransactionsRoute = DashboardTransactionsRouteImport.update({
+  id: '/transactions',
+  path: '/transactions',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardRecipientsRoute = DashboardRecipientsRouteImport.update({
+  id: '/recipients',
+  path: '/recipients',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardMessagesRoute = DashboardMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardInvoicesRoute = DashboardInvoicesRouteImport.update({
+  id: '/invoices',
+  path: '/invoices',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardHelpRoute = DashboardHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardBugreportsRoute = DashboardBugreportsRouteImport.update({
   id: '/bugreports',
   path: '/bugreports',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
 const DashboardAccessDemoRoute = DashboardAccessDemoRouteImport.update({
@@ -72,8 +120,16 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/account/profile': typeof AccountProfileRoute
   '/dashboard/access-demo': typeof DashboardAccessDemoRoute
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/bugreports': typeof DashboardBugreportsRoute
+  '/dashboard/help': typeof DashboardHelpRoute
+  '/dashboard/invoices': typeof DashboardInvoicesRoute
+  '/dashboard/messages': typeof DashboardMessagesRoute
+  '/dashboard/recipients': typeof DashboardRecipientsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/transactions': typeof DashboardTransactionsRoute
   '/dashboard/users': typeof DashboardUsersRoute
+  '/dashboard/wallets': typeof DashboardWalletsRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -82,8 +138,16 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/account/profile': typeof AccountProfileRoute
   '/dashboard/access-demo': typeof DashboardAccessDemoRoute
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/bugreports': typeof DashboardBugreportsRoute
+  '/dashboard/help': typeof DashboardHelpRoute
+  '/dashboard/invoices': typeof DashboardInvoicesRoute
+  '/dashboard/messages': typeof DashboardMessagesRoute
+  '/dashboard/recipients': typeof DashboardRecipientsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/transactions': typeof DashboardTransactionsRoute
   '/dashboard/users': typeof DashboardUsersRoute
+  '/dashboard/wallets': typeof DashboardWalletsRoute
   '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -94,8 +158,16 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/account/profile': typeof AccountProfileRoute
   '/dashboard/access-demo': typeof DashboardAccessDemoRoute
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/bugreports': typeof DashboardBugreportsRoute
+  '/dashboard/help': typeof DashboardHelpRoute
+  '/dashboard/invoices': typeof DashboardInvoicesRoute
+  '/dashboard/messages': typeof DashboardMessagesRoute
+  '/dashboard/recipients': typeof DashboardRecipientsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/transactions': typeof DashboardTransactionsRoute
   '/dashboard/users': typeof DashboardUsersRoute
+  '/dashboard/wallets': typeof DashboardWalletsRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -107,8 +179,16 @@ export interface FileRouteTypes {
     | '/login'
     | '/account/profile'
     | '/dashboard/access-demo'
+    | '/dashboard/analytics'
     | '/dashboard/bugreports'
+    | '/dashboard/help'
+    | '/dashboard/invoices'
+    | '/dashboard/messages'
+    | '/dashboard/recipients'
+    | '/dashboard/settings'
+    | '/dashboard/transactions'
     | '/dashboard/users'
+    | '/dashboard/wallets'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -117,8 +197,16 @@ export interface FileRouteTypes {
     | '/login'
     | '/account/profile'
     | '/dashboard/access-demo'
+    | '/dashboard/analytics'
     | '/dashboard/bugreports'
+    | '/dashboard/help'
+    | '/dashboard/invoices'
+    | '/dashboard/messages'
+    | '/dashboard/recipients'
+    | '/dashboard/settings'
+    | '/dashboard/transactions'
     | '/dashboard/users'
+    | '/dashboard/wallets'
     | '/dashboard'
   id:
     | '__root__'
@@ -128,8 +216,16 @@ export interface FileRouteTypes {
     | '/login'
     | '/account/profile'
     | '/dashboard/access-demo'
+    | '/dashboard/analytics'
     | '/dashboard/bugreports'
+    | '/dashboard/help'
+    | '/dashboard/invoices'
+    | '/dashboard/messages'
+    | '/dashboard/recipients'
+    | '/dashboard/settings'
+    | '/dashboard/transactions'
     | '/dashboard/users'
+    | '/dashboard/wallets'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -177,6 +273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/dashboard/wallets': {
+      id: '/dashboard/wallets'
+      path: '/wallets'
+      fullPath: '/dashboard/wallets'
+      preLoaderRoute: typeof DashboardWalletsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/users': {
       id: '/dashboard/users'
       path: '/users'
@@ -184,11 +287,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardUsersRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/dashboard/transactions': {
+      id: '/dashboard/transactions'
+      path: '/transactions'
+      fullPath: '/dashboard/transactions'
+      preLoaderRoute: typeof DashboardTransactionsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/recipients': {
+      id: '/dashboard/recipients'
+      path: '/recipients'
+      fullPath: '/dashboard/recipients'
+      preLoaderRoute: typeof DashboardRecipientsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/messages': {
+      id: '/dashboard/messages'
+      path: '/messages'
+      fullPath: '/dashboard/messages'
+      preLoaderRoute: typeof DashboardMessagesRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/invoices': {
+      id: '/dashboard/invoices'
+      path: '/invoices'
+      fullPath: '/dashboard/invoices'
+      preLoaderRoute: typeof DashboardInvoicesRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/help': {
+      id: '/dashboard/help'
+      path: '/help'
+      fullPath: '/dashboard/help'
+      preLoaderRoute: typeof DashboardHelpRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/dashboard/bugreports': {
       id: '/dashboard/bugreports'
       path: '/bugreports'
       fullPath: '/dashboard/bugreports'
       preLoaderRoute: typeof DashboardBugreportsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/analytics': {
+      id: '/dashboard/analytics'
+      path: '/analytics'
+      fullPath: '/dashboard/analytics'
+      preLoaderRoute: typeof DashboardAnalyticsRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
     '/dashboard/access-demo': {
@@ -222,15 +374,31 @@ const AccountRouteRouteWithChildren = AccountRouteRoute._addFileChildren(
 
 interface DashboardRouteRouteChildren {
   DashboardAccessDemoRoute: typeof DashboardAccessDemoRoute
+  DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
   DashboardBugreportsRoute: typeof DashboardBugreportsRoute
+  DashboardHelpRoute: typeof DashboardHelpRoute
+  DashboardInvoicesRoute: typeof DashboardInvoicesRoute
+  DashboardMessagesRoute: typeof DashboardMessagesRoute
+  DashboardRecipientsRoute: typeof DashboardRecipientsRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardTransactionsRoute: typeof DashboardTransactionsRoute
   DashboardUsersRoute: typeof DashboardUsersRoute
+  DashboardWalletsRoute: typeof DashboardWalletsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardAccessDemoRoute: DashboardAccessDemoRoute,
+  DashboardAnalyticsRoute: DashboardAnalyticsRoute,
   DashboardBugreportsRoute: DashboardBugreportsRoute,
+  DashboardHelpRoute: DashboardHelpRoute,
+  DashboardInvoicesRoute: DashboardInvoicesRoute,
+  DashboardMessagesRoute: DashboardMessagesRoute,
+  DashboardRecipientsRoute: DashboardRecipientsRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardTransactionsRoute: DashboardTransactionsRoute,
   DashboardUsersRoute: DashboardUsersRoute,
+  DashboardWalletsRoute: DashboardWalletsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
