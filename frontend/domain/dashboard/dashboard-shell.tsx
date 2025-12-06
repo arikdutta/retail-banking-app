@@ -3,7 +3,6 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   FileText,
-  MessageSquare,
   Wallet,
   Activity,
   BarChart3,
@@ -41,7 +40,6 @@ import type { Role } from "@/lib/roles";
 const MAIN_NAV = [
   { href: "/dashboard",           label: "Dashboard",  icon: LayoutDashboard, exact: true },
   { href: "/dashboard/invoices",  label: "Invoices",   icon: FileText,        exact: false },
-  { href: "/dashboard/messages",  label: "Messages",   icon: MessageSquare,   exact: false, badge: 3 },
   { href: "/dashboard/wallets",   label: "My Wallets", icon: Wallet,          exact: false },
 ];
 
@@ -105,7 +103,7 @@ export function DashboardShell({ user, children }: Props) {
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
-                {MAIN_NAV.map(({ href, label, icon: Icon, exact, badge }) => {
+                {MAIN_NAV.map(({ href, label, icon: Icon, exact }) => {
                   const active = matchActive(pathname, href, exact);
                   return (
                     <SidebarMenuItem key={href}>
@@ -113,11 +111,6 @@ export function DashboardShell({ user, children }: Props) {
                         <Link to={href}>
                           <Icon />
                           <span>{label}</span>
-                          {badge && (
-                            <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-[10px] font-semibold text-white">
-                              {badge}
-                            </span>
-                          )}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
