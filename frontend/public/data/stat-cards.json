@@ -1,0 +1,5 @@
+[
+  { "label": "Business account", "value": "$24,098.00", "trend": 2.5 },
+  { "label": "Tax Reserve",      "value": "$2,456.89",  "trend": -0.8 },
+  { "label": "Savings",          "value": "$1,980.00",  "trend": 5.2 }
+]
