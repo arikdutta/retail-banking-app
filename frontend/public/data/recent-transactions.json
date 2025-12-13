@@ -1,0 +1,5 @@
+[
+  { "id": 1, "name": "Bitcoin transactions", "date": "Jan 16, 2022", "amount": -835,   "status": "success", "color": "bg-orange-500", "initials": "₿" },
+  { "id": 2, "name": "Sent to Antonio",      "date": "Jan 14, 2022", "amount": -150,   "status": "pending", "color": "bg-blue-500",   "initials": "A" },
+  { "id": 3, "name": "Withdraw Paypal",      "date": "Jan 13, 2022", "amount":  200,   "status": "success", "color": "bg-blue-400",   "initials": "P" }
+]

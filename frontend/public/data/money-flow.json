@@ -1,0 +1,9 @@
+[
+  { "date": "Jan 10", "income": 3200, "expenses": 2100 },
+  { "date": "Jan 11", "income": 4100, "expenses": 2800 },
+  { "date": "Jan 12", "income": 5052, "expenses": 3200 },
+  { "date": "Jan 13", "income": 3800, "expenses": 4100 },
+  { "date": "Jan 14", "income": 4600, "expenses": 2900 },
+  { "date": "Jan 15", "income": 5200, "expenses": 3500 },
+  { "date": "Jan 16", "income": 4800, "expenses": 3100 }
+]

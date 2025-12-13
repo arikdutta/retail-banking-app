@@ -1,0 +1,6 @@
+[
+  { "id": 1, "name": "Stripe",   "sub": "Deposit",     "amount":  523.10, "date": "Today at 9:25 AM",     "color": "bg-purple-500", "initials": "S" },
+  { "id": 2, "name": "Facebook", "sub": "Advertising", "amount": -600.00, "date": "Today at 9:34 AM",     "color": "bg-blue-600",   "initials": "f" },
+  { "id": 3, "name": "Upwork",   "sub": "Business",    "amount": -1243.00,"date": "Yesterday at 10:05 PM","color": "bg-green-500",  "initials": "U" },
+  { "id": 4, "name": "UI8.net",  "sub": "Payment",     "amount": -190.00, "date": "Yesterday at 4:00 PM", "color": "bg-indigo-500", "initials": "U" }
+]

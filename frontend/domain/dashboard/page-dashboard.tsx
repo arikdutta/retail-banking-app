@@ -23,43 +23,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useStatCards } from "@/hooks/use-stat-cards";
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const moneyFlowData = [
-  { date: "Jan 10", income: 3200, expenses: 2100 },
-  { date: "Jan 11", income: 4100, expenses: 2800 },
-  { date: "Jan 12", income: 5052, expenses: 3200 },
-  { date: "Jan 13", income: 3800, expenses: 4100 },
-  { date: "Jan 14", income: 4600, expenses: 2900 },
-  { date: "Jan 15", income: 5200, expenses: 3500 },
-  { date: "Jan 16", income: 4800, expenses: 3100 },
-];
-
-const recentTransactions = [
-  { id: 1, name: "Bitcoin transactions", date: "Jan 16, 2022", amount: -835,  status: "success", color: "bg-orange-500", initials: "₿" },
-  { id: 2, name: "Sent to Antonio",      date: "Jan 14, 2022", amount: -150,  status: "pending", color: "bg-blue-500",   initials: "A" },
-  { id: 3, name: "Withdraw Paypal",      date: "Jan 13, 2022", amount: +200,  status: "success", color: "bg-blue-400",   initials: "P" },
-];
-
-const recentActivity = [
-  { id: 1, name: "Stripe",   sub: "Deposit",     amount: +523.10,  date: "Today at 9:25 AM",      color: "bg-purple-500", initials: "S" },
-  { id: 2, name: "Facebook", sub: "Advertising", amount: -600.00,  date: "Today at 9:34 AM",       color: "bg-blue-600",   initials: "f" },
-  { id: 3, name: "Upwork",   sub: "Business",    amount: -1243.00, date: "Yesterday at 10:05 PM",  color: "bg-green-500",  initials: "U" },
-  { id: 4, name: "UI8.net",  sub: "Payment",     amount: -190.00,  date: "Yesterday at 4:00 PM",   color: "bg-indigo-500", initials: "U" },
-];
-
-const savingsData = [
-  { name: "Mutual funds", amount: 545, progress: 72, color: "bg-blue-600" },
-  { name: "Investment",   amount: 234, progress: 38, color: "bg-blue-400" },
-];
-
-const donutData = [
-  { name: "Savings",    value: 725,  color: "#3B82F6" },
-  { name: "Expenses",   value: 2350, color: "#93C5FD" },
-  { name: "Investment", value: 110,  color: "#DBEAFE" },
-];
-
+import { useMoneyFlow } from "@/hooks/use-money-flow";
+import { useRecentTransactions } from "@/hooks/use-recent-transactions";
+import { useRecentActivity } from "@/hooks/use-recent-activity";
+import { useSavings } from "@/hooks/use-savings";
+import { useDonutStats } from "@/hooks/use-donut-stats";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -114,6 +82,8 @@ function StatCards() {
 }
 
 function MoneyFlowChart() {
+  const { data, isPending } = useMoneyFlow();
+
   return (
     <div className="rounded-xl border bg-card p-5">
       <div className="mb-4 flex items-center justify-between">
@@ -128,64 +98,74 @@ function MoneyFlowChart() {
           <span>Jan 10 – Jan 16</span>
         </div>
       </div>
-      <ResponsiveContainer width="100%" height={200}>
-        <LineChart data={moneyFlowData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-          <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-          <YAxis
-            tick={{ fontSize: 11 }}
-            tickLine={false}
-            axisLine={false}
-            tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
-          />
-          <Tooltip
-            contentStyle={{ borderRadius: 8, fontSize: 12, border: "1px solid hsl(var(--border))" }}
-            formatter={(val) => [`$${Number(val).toLocaleString()}`, ""]}
-          />
-          <Line type="monotone" dataKey="income"   stroke="#3B82F6" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
-          <Line type="monotone" dataKey="expenses" stroke="#BFDBFE" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
-        </LineChart>
-      </ResponsiveContainer>
+      {isPending ? (
+        <div className="h-[200px] animate-pulse rounded-lg bg-muted" />
+      ) : (
+        <ResponsiveContainer width="100%" height={200}>
+          <LineChart data={data ?? []} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+            <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+            <YAxis
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`}
+            />
+            <Tooltip
+              contentStyle={{ borderRadius: 8, fontSize: 12, border: "1px solid hsl(var(--border))" }}
+              formatter={(val) => [`$${Number(val).toLocaleString()}`, ""]}
+            />
+            <Line type="monotone" dataKey="income"   stroke="#3B82F6" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+            <Line type="monotone" dataKey="expenses" stroke="#BFDBFE" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      )}
     </div>
   );
 }
 
 function RecentTransactions() {
+  const { data, isPending } = useRecentTransactions();
+
   return (
     <div className="rounded-xl border bg-card p-5">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-semibold text-sm">Recent Transactions</h3>
         <button className="text-xs text-blue-600 hover:underline">View all</button>
       </div>
-      <div className="space-y-3">
-        {recentTransactions.map((tx) => (
-          <div key={tx.id} className="flex items-center gap-3">
-            <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white", tx.color)}>
-              {tx.initials}
+      {isPending ? (
+        <div className="space-y-3">{[0, 1, 2].map((i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-muted" />)}</div>
+      ) : (
+        <div className="space-y-3">
+          {(data ?? []).map((tx) => (
+            <div key={tx.id} className="flex items-center gap-3">
+              <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white", tx.color)}>
+                {tx.initials}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{tx.name}</p>
+                <p className="text-xs text-muted-foreground">{tx.date}</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className={cn("text-sm font-semibold", tx.amount > 0 ? "text-emerald-500" : "")}>
+                  {tx.amount > 0 ? "+" : ""}
+                  {tx.amount.toLocaleString("en-US", { style: "currency", currency: "USD" })}
+                </p>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "mt-0.5 text-[10px] px-1.5 py-0 border-0 h-4",
+                    tx.status === "success" && "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30",
+                    tx.status === "pending" && "bg-amber-50 text-amber-600 dark:bg-amber-950/30",
+                  )}
+                >
+                  {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
+                </Badge>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{tx.name}</p>
-              <p className="text-xs text-muted-foreground">{tx.date}</p>
-            </div>
-            <div className="text-right shrink-0">
-              <p className={cn("text-sm font-semibold", tx.amount > 0 ? "text-emerald-500" : "")}>
-                {tx.amount > 0 ? "+" : ""}
-                {tx.amount.toLocaleString("en-US", { style: "currency", currency: "USD" })}
-              </p>
-              <Badge
-                variant="outline"
-                className={cn(
-                  "mt-0.5 text-[10px] px-1.5 py-0 border-0 h-4",
-                  tx.status === "success" && "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30",
-                  tx.status === "pending" && "bg-amber-50 text-amber-600 dark:bg-amber-950/30",
-                )}
-              >
-                {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
-              </Badge>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -258,82 +238,100 @@ function QuickTransfer() {
 }
 
 function RecentActivity() {
+  const { data, isPending } = useRecentActivity();
+
   return (
     <div className="rounded-xl border bg-card p-5">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="font-semibold text-sm">Recent Activity</h3>
         <button className="text-xs text-blue-600 hover:underline">View all</button>
       </div>
-      <div className="space-y-3">
-        {recentActivity.map((item) => (
-          <div key={item.id} className="flex items-center gap-3">
-            <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white", item.color)}>
-              {item.initials}
+      {isPending ? (
+        <div className="space-y-3">{[0, 1, 2, 3].map((i) => <div key={i} className="h-8 animate-pulse rounded-lg bg-muted" />)}</div>
+      ) : (
+        <div className="space-y-3">
+          {(data ?? []).map((item) => (
+            <div key={item.id} className="flex items-center gap-3">
+              <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white", item.color)}>
+                {item.initials}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium leading-tight">{item.name}</p>
+                <p className="text-[10px] text-muted-foreground">{item.date}</p>
+              </div>
+              <p className={cn("text-sm font-semibold shrink-0", item.amount > 0 ? "text-emerald-500" : "")}>
+                {item.amount > 0 ? "+" : ""}
+                {item.amount.toFixed(2)}
+              </p>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium leading-tight">{item.name}</p>
-              <p className="text-[10px] text-muted-foreground">{item.date}</p>
-            </div>
-            <p className={cn("text-sm font-semibold shrink-0", item.amount > 0 ? "text-emerald-500" : "")}>
-              {item.amount > 0 ? "+" : ""}
-              {item.amount.toFixed(2)}
-            </p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 function SavingsSection() {
+  const { data, isPending } = useSavings();
+
   return (
     <div className="rounded-xl border bg-card p-5">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="font-semibold text-sm">Saving</h3>
         <span className="text-xs text-muted-foreground">This month ↓</span>
       </div>
-      <div className="space-y-4">
-        {savingsData.map((item) => (
-          <div key={item.name}>
-            <div className="mb-1.5 flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">{item.name}</span>
-              <span className="font-semibold">${item.amount}</span>
+      {isPending ? (
+        <div className="space-y-4">{[0, 1].map((i) => <div key={i} className="h-8 animate-pulse rounded-lg bg-muted" />)}</div>
+      ) : (
+        <div className="space-y-4">
+          {(data ?? []).map((item) => (
+            <div key={item.name}>
+              <div className="mb-1.5 flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">{item.name}</span>
+                <span className="font-semibold">${item.amount}</span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                <div className={cn("h-full rounded-full transition-all", item.color)} style={{ width: `${item.progress}%` }} />
+              </div>
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-              <div className={cn("h-full rounded-full transition-all", item.color)} style={{ width: `${item.progress}%` }} />
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 function StatisticsDonut() {
+  const { data, isPending } = useDonutStats();
+
   return (
     <div className="rounded-xl border bg-card p-5">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="font-semibold text-sm">Statistics</h3>
         <button className="text-xs text-blue-600 hover:underline">View all</button>
       </div>
-      <div className="flex items-center gap-3">
-        <PieChart width={90} height={90}>
-          <Pie data={donutData} cx={40} cy={40} innerRadius={24} outerRadius={42} dataKey="value" strokeWidth={0}>
-            {donutData.map((entry, i) => (
-              <Cell key={i} fill={entry.color} />
+      {isPending ? (
+        <div className="h-[90px] animate-pulse rounded-lg bg-muted" />
+      ) : (
+        <div className="flex items-center gap-3">
+          <PieChart width={90} height={90}>
+            <Pie data={data ?? []} cx={40} cy={40} innerRadius={24} outerRadius={42} dataKey="value" strokeWidth={0}>
+              {(data ?? []).map((entry, i) => (
+                <Cell key={i} fill={entry.color} />
+              ))}
+            </Pie>
+          </PieChart>
+          <div className="space-y-1.5 flex-1">
+            {(data ?? []).map((d) => (
+              <div key={d.name} className="flex items-center gap-2 text-xs">
+                <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ background: d.color }} />
+                <span className="text-muted-foreground truncate">{d.name}</span>
+                <span className="ml-auto font-semibold">${d.value.toLocaleString()}</span>
+              </div>
             ))}
-          </Pie>
-        </PieChart>
-        <div className="space-y-1.5 flex-1">
-          {donutData.map((d) => (
-            <div key={d.name} className="flex items-center gap-2 text-xs">
-              <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ background: d.color }} />
-              <span className="text-muted-foreground truncate">{d.name}</span>
-              <span className="ml-auto font-semibold">${d.value.toLocaleString()}</span>
-            </div>
-          ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
