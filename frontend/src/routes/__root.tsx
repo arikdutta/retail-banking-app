@@ -71,7 +71,11 @@ export const Route = createRootRoute({
     useEffect(() => {
       setReporterUser(user?.email ?? null);
     }, [user?.email]);
-    return <Outlet />;
+    return (
+      <QueryProvider>
+        <Outlet />
+      </QueryProvider>
+    );
   },
   shellComponent: RootDocument,
 });
