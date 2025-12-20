@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useStatCards } from "@/hooks/use-stat-cards";
 import { useMoneyFlow } from "@/hooks/use-money-flow";
@@ -57,7 +58,20 @@ function PromoBanner() {
 function StatCards() {
   const { data, isPending } = useStatCards();
 
-  if (isPending) return <div className="grid grid-cols-3 gap-4">{[0, 1, 2].map((i) => <div key={i} className="rounded-xl border bg-card p-4 h-20 animate-pulse" />)}</div>;
+  if (isPending) return (
+    <div className="grid grid-cols-3 gap-4">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="rounded-xl border bg-card p-4 space-y-3">
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-6 w-24" />
+          <div className="flex items-center gap-1.5">
+            <Skeleton className="h-3 w-3 rounded-full" />
+            <Skeleton className="h-3 w-10" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className="grid grid-cols-3 gap-4">
@@ -99,7 +113,18 @@ function MoneyFlowChart() {
         </div>
       </div>
       {isPending ? (
-        <div className="h-[200px] animate-pulse rounded-lg bg-muted" />
+        <div className="space-y-2">
+          <div className="flex items-end gap-1 h-[200px] px-1">
+            {[40, 70, 50, 90, 60, 80, 45].map((h, i) => (
+              <Skeleton key={i} className="flex-1 rounded-sm" style={{ height: `${h}%` }} />
+            ))}
+          </div>
+          <div className="flex justify-between px-1">
+            {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton key={i} className="h-2.5 w-6" />
+            ))}
+          </div>
+        </div>
       ) : (
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={data ?? []} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -134,7 +159,21 @@ function RecentTransactions() {
         <button className="text-xs text-blue-600 hover:underline">View all</button>
       </div>
       {isPending ? (
-        <div className="space-y-3">{[0, 1, 2].map((i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-muted" />)}</div>
+        <div className="space-y-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex items-center gap-3">
+              <Skeleton className="h-9 w-9 rounded-full shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-3 w-28" />
+                <Skeleton className="h-2.5 w-16" />
+              </div>
+              <div className="space-y-1.5 items-end flex flex-col">
+                <Skeleton className="h-3 w-14" />
+                <Skeleton className="h-3 w-10 rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="space-y-3">
           {(data ?? []).map((tx) => (
@@ -247,7 +286,18 @@ function RecentActivity() {
         <button className="text-xs text-blue-600 hover:underline">View all</button>
       </div>
       {isPending ? (
-        <div className="space-y-3">{[0, 1, 2, 3].map((i) => <div key={i} className="h-8 animate-pulse rounded-lg bg-muted" />)}</div>
+        <div className="space-y-3">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-3">
+              <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-3 w-24" />
+                <Skeleton className="h-2.5 w-16" />
+              </div>
+              <Skeleton className="h-3 w-12 shrink-0" />
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="space-y-3">
           {(data ?? []).map((item) => (
@@ -281,7 +331,17 @@ function SavingsSection() {
         <span className="text-xs text-muted-foreground">This month ↓</span>
       </div>
       {isPending ? (
-        <div className="space-y-4">{[0, 1].map((i) => <div key={i} className="h-8 animate-pulse rounded-lg bg-muted" />)}</div>
+        <div className="space-y-4">
+          {[0, 1].map((i) => (
+            <div key={i} className="space-y-2">
+              <div className="flex justify-between">
+                <Skeleton className="h-2.5 w-20" />
+                <Skeleton className="h-2.5 w-12" />
+              </div>
+              <Skeleton className="h-1.5 w-full rounded-full" />
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="space-y-4">
           {(data ?? []).map((item) => (
@@ -311,7 +371,18 @@ function StatisticsDonut() {
         <button className="text-xs text-blue-600 hover:underline">View all</button>
       </div>
       {isPending ? (
-        <div className="h-[90px] animate-pulse rounded-lg bg-muted" />
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-[90px] w-[90px] rounded-full shrink-0" />
+          <div className="flex-1 space-y-2">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="flex items-center gap-2">
+                <Skeleton className="h-2 w-2 rounded-full shrink-0" />
+                <Skeleton className="h-2.5 flex-1" />
+                <Skeleton className="h-2.5 w-10 shrink-0" />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
         <div className="flex items-center gap-3">
           <PieChart width={90} height={90}>
