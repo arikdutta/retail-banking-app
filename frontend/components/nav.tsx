@@ -4,7 +4,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, User, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserMenu } from "@/components/user-menu";
-import { useMe } from "@/hooks/use-me";
+import { useMe } from "@/hooks/data/use-me";
 
 const LINKS = [
   { href: "/",               label: "Home",      icon: Home,            exact: true },

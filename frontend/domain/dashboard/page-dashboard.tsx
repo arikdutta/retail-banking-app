@@ -23,12 +23,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { useStatCards } from "@/hooks/use-stat-cards";
-import { useMoneyFlow } from "@/hooks/use-money-flow";
-import { useRecentTransactions } from "@/hooks/use-recent-transactions";
-import { useRecentActivity } from "@/hooks/use-recent-activity";
-import { useSavings } from "@/hooks/use-savings";
-import { useDonutStats } from "@/hooks/use-donut-stats";
+import { useStatCards } from "@/hooks/data/use-stat-cards";
+import { useMoneyFlow } from "@/hooks/data/use-money-flow";
+import { useRecentTransactions } from "@/hooks/data/use-recent-transactions";
+import { useRecentActivity } from "@/hooks/data/use-recent-activity";
+import { useSavings } from "@/hooks/data/use-savings";
+import { useDonutStats } from "@/hooks/data/use-donut-stats";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
