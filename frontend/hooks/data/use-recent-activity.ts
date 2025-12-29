@@ -1,13 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
 type ActivityItem = {
-  id: number;
-  name: string;
-  sub: string;
+  id: string;
+  merchant_name: string;
+  category: string;
   amount: number;
-  date: string;
-  color: string;
-  initials: string;
+  currency: string;
+  timestamp: string;
 };
 
 export function useRecentActivity() {

@@ -1,5 +1,5 @@
 [
-  { "id": 1, "name": "Bitcoin transactions", "date": "Jan 16, 2022", "amount": -835,   "status": "success", "color": "bg-orange-500", "initials": "₿" },
-  { "id": 2, "name": "Sent to Antonio",      "date": "Jan 14, 2022", "amount": -150,   "status": "pending", "color": "bg-blue-500",   "initials": "A" },
-  { "id": 3, "name": "Withdraw Paypal",      "date": "Jan 13, 2022", "amount":  200,   "status": "success", "color": "bg-blue-400",   "initials": "P" }
+  { "id": "e5f6a7b8-c9d0-1234-efab-345678901234", "description": "Bitcoin purchase",  "category": "crypto",    "amount": -835.00, "currency": "USD", "timestamp": "2024-01-16T14:30:00Z", "status": "completed" },
+  { "id": "f6a7b8c9-d0e1-2345-fabc-456789012345", "description": "Sent to Antonio",   "category": "transfer",  "amount": -150.00, "currency": "USD", "timestamp": "2024-01-14T11:20:00Z", "status": "pending"   },
+  { "id": "a7b8c9d0-e1f2-3456-abcd-567890123456", "description": "Withdraw Paypal",   "category": "withdrawal","amount":  200.00, "currency": "USD", "timestamp": "2024-01-13T08:45:00Z", "status": "completed" }
 ]

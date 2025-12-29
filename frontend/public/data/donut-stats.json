@@ -1,5 +1,5 @@
 [
-  { "name": "Savings",    "value": 725,  "color": "#3B82F6" },
-  { "name": "Expenses",   "value": 2350, "color": "#93C5FD" },
-  { "name": "Investment", "value": 110,  "color": "#DBEAFE" }
+  { "category": "savings",     "label": "Savings",    "amount": 725,  "currency": "USD" },
+  { "category": "expenses",    "label": "Expenses",   "amount": 2350, "currency": "USD" },
+  { "category": "investments", "label": "Investment", "amount": 110,  "currency": "USD" }
 ]

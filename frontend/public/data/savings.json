@@ -1,4 +1,4 @@
 [
-  { "name": "Mutual funds", "amount": 545, "progress": 72, "color": "bg-blue-600" },
-  { "name": "Investment",   "amount": 234, "progress": 38, "color": "bg-blue-400" }
+  { "id": "e1f2a3b4-c5d6-7890-efab-901234567890", "name": "Mutual funds", "current_amount": 545, "target_amount": 757,  "currency": "USD" },
+  { "id": "f2a3b4c5-d6e7-8901-fabc-012345678901", "name": "Investment",   "current_amount": 234, "target_amount": 616,  "currency": "USD" }
 ]
