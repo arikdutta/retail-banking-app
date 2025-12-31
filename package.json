@@ -5,6 +5,9 @@
   "scripts": {
     "build": "pnpm -r build",
     "dev": "concurrently -n backend,app -c magenta,cyan --kill-others-on-fail \"cd backend && cargo run\" \"wait-on tcp:3001 && cd frontend && pnpm dev\"",
+    "desktop": "concurrently -n backend,app,tauri -c magenta,cyan,blue --kill-others-on-fail \"cd backend && cargo run\" \"wait-on tcp:3001 && cd frontend && pnpm dev\" \"wait-on tcp:3000 && cargo tauri dev\"",
+    "ios": "concurrently --raw --kill-others-on-fail \"cd backend && cargo run\" \"wait-on tcp:3001 && cd frontend && pnpm dev\" \"wait-on tcp:3000 && cargo tauri ios dev\"",
+    "android": "concurrently -n backend,app,tauri -c magenta,cyan,blue --kill-others-on-fail \"cd backend && cargo run\" \"wait-on tcp:3001 && cd frontend && pnpm dev\" \"wait-on tcp:3000 && cargo tauri android dev\"",
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "format": "biome format --write .",
