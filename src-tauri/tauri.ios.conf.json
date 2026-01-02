@@ -1,0 +1,8 @@
+{
+  "bundle": {
+    "iOS": {
+      "developmentTeam": "4JGPL5Q5CD",
+      "minimumSystemVersion": "14.0"
+    }
+  }
+}
