@@ -1,0 +1,38 @@
+# ------- 1. CHEF STAGE -------
+FROM lukemathwalker/cargo-chef:latest-rust-1.88-bookworm AS chef
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# ------- 2. PLANNER STAGE -------
+FROM chef AS planner
+COPY backend/ ./
+RUN cargo chef prepare --recipe-path recipe.json
+
+# ------- 3. BUILDER STAGE -------
+FROM chef AS builder
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+
+COPY backend/ ./
+COPY migrations/ /migrations/
+ENV SQLX_OFFLINE=true
+RUN cargo build --release
+
+# ------- 4. RUNTIME STAGE -------
+FROM debian:bookworm-slim AS runtime
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    libssl3 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/target/release/backend ./backend
+
+ENV RUST_LOG=info
+EXPOSE 3001
+CMD ["./backend"]
