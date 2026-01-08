@@ -24,6 +24,11 @@ pnpm android    # Android
 | `demo@scalenza.com`    | `password` | Demo          |
 
 
+## TypeScript Bindings
+
+`frontend/bindings/` is auto-generated from Rust structs annotated with `#[derive(TS)]` (via `ts-rs`).
+Run `cargo test` in `backend/` to regenerate — types stay in sync with the backend at compile time.
+
 ## Troubleshooting
 
 ### iOS
