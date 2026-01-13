@@ -1,0 +1,7 @@
+[advisories]
+ignore = [
+    # rsa Marvin Attack (timing side-channel). Pulled in via sqlx-mysql even though
+    # this project uses postgres only — the RSA code path is never executed.
+    # No fix available upstream. Revisit when sqlx releases a patch.
+    "RUSTSEC-2023-0071",
+]
