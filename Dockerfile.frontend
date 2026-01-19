@@ -1,35 +1,38 @@
 # ------- 1. DEPS STAGE -------
 FROM node:20-alpine AS deps
-WORKDIR /app/frontend
+WORKDIR /app
 
-COPY frontend/package.json frontend/pnpm-lock.yaml* ./
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+COPY pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY frontend/package.json ./frontend/
+
+RUN npm install -g pnpm@10.0.0 && pnpm install --frozen-lockfile
 
 # ------- 2. BUILDER STAGE -------
 FROM node:20-alpine AS builder
-WORKDIR /app/frontend
+WORKDIR /app
 
-COPY --from=deps /app/frontend/node_modules ./node_modules
-COPY frontend/ ./
+COPY --from=deps /app/node_modules ./node_modules
+COPY pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY frontend/ ./frontend/
 
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 
-RUN npm install -g pnpm && pnpm run build
+RUN npm install -g pnpm@10.0.0 && pnpm --filter frontend run build
 
 # ------- 3. RUNNER STAGE -------
 FROM node:20-alpine AS runner
-WORKDIR /app/frontend
+WORKDIR /app
 
 ENV NODE_ENV=production
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 appuser
 
-COPY --from=builder --chown=appuser:nodejs /app/frontend/.output ./.output
-COPY --from=builder /app/frontend/node_modules ./node_modules
-COPY --from=builder /app/frontend/package.json ./
+COPY --from=builder --chown=appuser:nodejs /app/frontend/.output ./frontend/.output
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/frontend/package.json ./frontend/
 
 USER appuser
 EXPOSE 3000
-CMD ["node", ".output/server/index.mjs"]
+CMD ["node", "frontend/.output/server/index.mjs"]
