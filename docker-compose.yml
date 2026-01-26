@@ -21,6 +21,7 @@ services:
     image: ${DOCKER_USERNAME}/${DOCKER_REPOSITORY}:frontend-${IMAGE_TAG}
     environment:
       NODE_ENV: production
+      API_URL: http://backend:3001
     ports:
       - "127.0.0.1:5002:3000"
     restart: always
