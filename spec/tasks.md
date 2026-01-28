@@ -1,7 +1,7 @@
 # Retail Banking App — Task List
 
 **Stack:** TanStack Router + TanStack Query + React + Axum backend
-**Design ref:** Overpay UI (see spec screenshots)
+**Design ref:** Rust Finance UI (see spec screenshots)
 **Approach:** Mock data first (weeks 1–3), backend wiring week 4
 
 ---
