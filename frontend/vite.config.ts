@@ -33,10 +33,10 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
       },
       manifest: {
-        name: "Invoice App",
-        short_name: "InvoiceApp",
-        description: "Gérez vos clients et factures.",
-        theme_color: "#ffffff",
+        name: "Rust Finance",
+        short_name: "Rust Finance",
+        description: "Rust Finance — your personal banking app.",
+        theme_color: "#4f46e5",
         background_color: "#ffffff",
         display: "standalone",
         icons: [
