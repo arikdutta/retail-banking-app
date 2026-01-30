@@ -47,8 +47,8 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Auth App" },
-      { name: "description", content: "Fullstack authentication demo." },
+      { title: "Rust Finance" },
+      { name: "description", content: "Rust Finance — your personal banking app." },
     ],
     links: [
       { rel: "stylesheet", href: globalsCss },

@@ -84,7 +84,7 @@ export function DashboardShell({ user, children }: Props) {
               <SidebarMenuButton size="lg" asChild>
                 <Link to="/dashboard">
                   <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-sm">
-                    O
+                    R
                   </div>
                   <div className="flex flex-col gap-0.5 leading-none">
                     <span className="font-bold text-base tracking-tight">
