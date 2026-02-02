@@ -52,7 +52,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: globalsCss },
-      { rel: "icon", href: "/favicon.ico" },
+      { rel: "icon", href: "/favicon.ico?v=2" },
       { rel: "manifest", href: "/manifest.webmanifest" },
     ],
   }),
