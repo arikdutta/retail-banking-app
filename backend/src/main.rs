@@ -13,10 +13,13 @@ use tracing_subscriber::EnvFilter;
 mod domain;
 mod state;
 
+use domain::accounts::handler::{get_account, list_accounts};
 use domain::auth::handler::{dashboard_stats, dashboard_users, login, logout, me};
 use domain::auth::middleware::require_auth;
 use domain::bugreports::handler::{bug_report_charts, create_bug_report, delete_all_bug_reports, get_bug_report, list_bug_reports};
 use domain::roleaccesses::handler::{get_all as roleaccesses_get_all, get_my_roles, root_check};
+use domain::savings_goals::handler::list_savings_goals;
+use domain::transactions::handler::{donut_stats, list_transactions, money_flow, recent_activity};
 use state::AppState;
 
 #[tokio::main]
@@ -54,6 +57,13 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/auth/me",                  get(me))
         .route("/api/dashboard/stats",          get(dashboard_stats))
         .route("/api/dashboard/users",          get(dashboard_users))
+        .route("/api/dashboard/money-flow",     get(money_flow))
+        .route("/api/dashboard/donut-stats",    get(donut_stats))
+        .route("/api/accounts",                 get(list_accounts))
+        .route("/api/accounts/{id}",            get(get_account))
+        .route("/api/transactions",             get(list_transactions))
+        .route("/api/transactions/activity",    get(recent_activity))
+        .route("/api/savings",                  get(list_savings_goals))
         .route("/api/bugreports",               get(list_bug_reports).delete(delete_all_bug_reports))
         .route("/api/bugreports/{unid}",        get(get_bug_report))
         .route("/api/bugreports/charts",        get(bug_report_charts))
