@@ -1,0 +1,3 @@
+[env]
+# Used by sqlx::test and sqlx CLI. `force = false` means real env vars override this.
+DATABASE_URL = { value = "postgres://postgres:password@127.0.0.1/retail_banking_app", force = false }
