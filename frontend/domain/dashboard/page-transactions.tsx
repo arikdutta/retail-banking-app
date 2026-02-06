@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Search, Filter, Upload, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Filter, Upload, X, ChevronLeft, ChevronRight, FileDown, Loader2 } from "lucide-react";
 import { BarChart, Bar, ResponsiveContainer } from "recharts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+const API_URL = import.meta.env["VITE_API_URL"] ?? "http://localhost:3001";
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
@@ -50,9 +52,35 @@ const STATUS_STYLES: Record<Status, string> = {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+async function downloadPdf(from: string, to: string, setDownloading: (v: boolean) => void) {
+  setDownloading(true);
+  try {
+    const res = await fetch(`${API_URL}/api/transactions/pdf?from=${from}&to=${to}`, {
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error(`PDF generation failed: ${res.status}`);
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = `transactions-${from}-to-${to}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setDownloading(false);
+  }
+}
+
 export default function PageTransactions() {
   const [selected, setSelected] = useState<Transaction | null>(transactions[5]!);
   const [search, setSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo]     = useState("");
+  const [downloading, setDownloading] = useState(false);
+
+  const canDownload = dateFrom !== "" && dateTo !== "" && dateTo >= dateFrom && !downloading;
 
   const filtered = transactions.filter(
     (t) =>
@@ -89,6 +117,34 @@ export default function PageTransactions() {
           <Button variant="outline" size="sm" className="gap-1.5">
             <Upload className="h-3.5 w-3.5" /> Exports
           </Button>
+
+          <div className="ml-auto flex items-center gap-2">
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="rounded-lg border bg-card px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500/30"
+            />
+            <span className="text-xs text-muted-foreground">to</span>
+            <input
+              type="date"
+              value={dateTo}
+              min={dateFrom}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="rounded-lg border bg-card px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500/30"
+            />
+            <Button
+              size="sm"
+              className="gap-1.5"
+              disabled={!canDownload}
+              onClick={() => downloadPdf(dateFrom, dateTo, setDownloading)}
+            >
+              {downloading
+                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                : <FileDown className="h-3.5 w-3.5" />}
+              PDF
+            </Button>
+          </div>
         </div>
 
         <div className="rounded-xl border bg-card overflow-hidden">

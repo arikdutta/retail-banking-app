@@ -1,3 +1,4 @@
+use chrono::NaiveDate;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -55,6 +56,33 @@ impl TransactionsDb {
             "#,
             user_unid,
             limit,
+        )
+        .fetch_all(pool)
+        .await
+    }
+
+    /// All transactions for a user within an inclusive date range (for PDF export).
+    pub async fn list_by_date_range(
+        pool: &PgPool,
+        user_unid: Uuid,
+        from: NaiveDate,
+        to: NaiveDate,
+    ) -> Result<Vec<Transaction>, sqlx::Error> {
+        sqlx::query_as!(
+            Transaction,
+            r#"
+            SELECT t.unid, t.account_unid, t.description, t.category,
+                   t.amount, t.currency, t.status, t.created_at
+            FROM transactions t
+            JOIN accounts a ON t.account_unid = a.unid
+            WHERE a.user_unid = $1
+              AND t.created_at::date >= $2
+              AND t.created_at::date <= $3
+            ORDER BY t.created_at ASC
+            "#,
+            user_unid,
+            from,
+            to,
         )
         .fetch_all(pool)
         .await
