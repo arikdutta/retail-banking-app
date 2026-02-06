@@ -73,6 +73,7 @@ dependencies = [
  "axum-extra",
  "chrono",
  "dotenv",
+ "http-body-util",
  "jsonwebtoken",
  "pwhash",
  "rust_decimal",
