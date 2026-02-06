@@ -1,4 +1,5 @@
 pub mod domain;
+pub mod pdf;
 pub mod state;
 
 use axum::{Router, middleware, routing::{get, post}};
@@ -10,7 +11,7 @@ use domain::auth::middleware::require_auth;
 use domain::bugreports::handler::{bug_report_charts, create_bug_report, delete_all_bug_reports, get_bug_report, list_bug_reports};
 use domain::roleaccesses::handler::{get_all as roleaccesses_get_all, get_my_roles, root_check};
 use domain::savings_goals::handler::list_savings_goals;
-use domain::transactions::handler::{donut_stats, list_transactions, money_flow, recent_activity};
+use domain::transactions::handler::{donut_stats, get_transactions_pdf, list_transactions, money_flow, recent_activity};
 use state::AppState;
 
 pub fn build_app(state: AppState) -> Router {
@@ -24,6 +25,7 @@ pub fn build_app(state: AppState) -> Router {
         .route("/api/accounts/{id}",            get(get_account))
         .route("/api/transactions",             get(list_transactions))
         .route("/api/transactions/activity",    get(recent_activity))
+        .route("/api/transactions/pdf",         get(get_transactions_pdf))
         .route("/api/savings",                  get(list_savings_goals))
         .route("/api/bugreports",               get(list_bug_reports).delete(delete_all_bug_reports))
         .route("/api/bugreports/{unid}",        get(get_bug_report))
