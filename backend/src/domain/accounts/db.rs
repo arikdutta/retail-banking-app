@@ -10,9 +10,12 @@ impl AccountsDb {
         sqlx::query_as!(
             Account,
             r#"
-            SELECT unid, user_unid, label, account_type, balance, currency, created_at, updated_at
+            SELECT unid, user_unid, account_number, iban, label,
+                   account_type AS "account_type: _",
+                   balance, currency, closed_at, created_at, updated_at
             FROM accounts
             WHERE user_unid = $1
+              AND closed_at IS NULL
             ORDER BY created_at ASC
             "#,
             user_unid,
@@ -25,7 +28,9 @@ impl AccountsDb {
         sqlx::query_as!(
             Account,
             r#"
-            SELECT unid, user_unid, label, account_type, balance, currency, created_at, updated_at
+            SELECT unid, user_unid, account_number, iban, label,
+                   account_type AS "account_type: _",
+                   balance, currency, closed_at, created_at, updated_at
             FROM accounts
             WHERE unid = $1
             "#,

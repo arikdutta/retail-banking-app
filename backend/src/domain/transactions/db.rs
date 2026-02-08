@@ -19,8 +19,14 @@ impl TransactionsDb {
         sqlx::query_as!(
             Transaction,
             r#"
-            SELECT t.unid, t.account_unid, t.description, t.category,
-                   t.amount, t.currency, t.status, t.created_at
+            SELECT t.unid, t.account_unid,
+                   t.transaction_type AS "transaction_type: _",
+                   t.description,
+                   t.category AS "category: _",
+                   t.amount, t.currency,
+                   t.counterparty_name, t.counterparty_iban, t.reference,
+                   t.status AS "status: _",
+                   t.created_at
             FROM transactions t
             JOIN accounts a ON t.account_unid = a.unid
             WHERE a.user_unid = $1
@@ -46,8 +52,14 @@ impl TransactionsDb {
         sqlx::query_as!(
             Transaction,
             r#"
-            SELECT t.unid, t.account_unid, t.description, t.category,
-                   t.amount, t.currency, t.status, t.created_at
+            SELECT t.unid, t.account_unid,
+                   t.transaction_type AS "transaction_type: _",
+                   t.description,
+                   t.category AS "category: _",
+                   t.amount, t.currency,
+                   t.counterparty_name, t.counterparty_iban, t.reference,
+                   t.status AS "status: _",
+                   t.created_at
             FROM transactions t
             JOIN accounts a ON t.account_unid = a.unid
             WHERE a.user_unid = $1
@@ -71,8 +83,14 @@ impl TransactionsDb {
         sqlx::query_as!(
             Transaction,
             r#"
-            SELECT t.unid, t.account_unid, t.description, t.category,
-                   t.amount, t.currency, t.status, t.created_at
+            SELECT t.unid, t.account_unid,
+                   t.transaction_type AS "transaction_type: _",
+                   t.description,
+                   t.category AS "category: _",
+                   t.amount, t.currency,
+                   t.counterparty_name, t.counterparty_iban, t.reference,
+                   t.status AS "status: _",
+                   t.created_at
             FROM transactions t
             JOIN accounts a ON t.account_unid = a.unid
             WHERE a.user_unid = $1
