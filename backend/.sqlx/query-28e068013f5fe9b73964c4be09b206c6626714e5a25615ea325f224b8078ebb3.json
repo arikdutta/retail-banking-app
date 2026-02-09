@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT unid, user_unid, label, account_type, balance, currency, created_at, updated_at\n            FROM accounts\n            WHERE unid = $1\n            ",
+  "query": "\n            SELECT unid, user_unid, account_number, iban, label,\n                   account_type AS \"account_type: _\",\n                   balance, currency, closed_at, created_at, updated_at\n            FROM accounts\n            WHERE unid = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -15,31 +15,46 @@
       },
       {
         "ordinal": 2,
-        "name": "label",
+        "name": "account_number",
         "type_info": "Text"
       },
       {
         "ordinal": 3,
-        "name": "account_type",
+        "name": "iban",
         "type_info": "Text"
       },
       {
         "ordinal": 4,
-        "name": "balance",
-        "type_info": "Numeric"
+        "name": "label",
+        "type_info": "Text"
       },
       {
         "ordinal": 5,
-        "name": "currency",
+        "name": "account_type: _",
         "type_info": "Text"
       },
       {
         "ordinal": 6,
+        "name": "balance",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 7,
+        "name": "currency",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "closed_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 7,
+        "ordinal": 10,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
@@ -53,12 +68,15 @@
       false,
       false,
       false,
+      true,
       false,
       false,
       false,
+      false,
+      true,
       false,
       false
     ]
   },
-  "hash": "a6e76ccf37a4f9d440945c62e1c96aafef8df9da42b12ebb19f87d4f8112d329"
+  "hash": "28e068013f5fe9b73964c4be09b206c6626714e5a25615ea325f224b8078ebb3"
 }
