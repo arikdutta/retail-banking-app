@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import DashboardPage from "@/domain/dashboard/page-dashboard";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/admin/")({
-  component: DashboardPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/admin/bugreports" });
+  },
 });
