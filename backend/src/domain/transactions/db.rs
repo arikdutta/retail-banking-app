@@ -43,6 +43,28 @@ impl TransactionsDb {
         .await
     }
 
+    /// Total transaction count for a user (used to compute total_pages).
+    pub async fn count(
+        pool: &PgPool,
+        user_unid: Uuid,
+        account_unid: Option<Uuid>,
+    ) -> Result<i64, sqlx::Error> {
+        sqlx::query_scalar!(
+            r#"
+            SELECT COUNT(*)
+            FROM transactions t
+            JOIN accounts a ON t.account_unid = a.unid
+            WHERE a.user_unid = $1
+              AND ($2::uuid IS NULL OR t.account_unid = $2)
+            "#,
+            user_unid,
+            account_unid,
+        )
+        .fetch_one(pool)
+        .await
+        .map(|c| c.unwrap_or(0))
+    }
+
     /// Most-recent N transactions across all of a user's accounts (activity feed).
     pub async fn recent_activity(
         pool: &PgPool,
