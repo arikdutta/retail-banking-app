@@ -1,8 +1,8 @@
 use auth_backend::state::AppState;
 use axum::body::Body;
-use axum::http::{Request, StatusCode, header};
+use axum::http::{header, Request, StatusCode};
 use http_body_util::BodyExt;
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use sqlx::PgPool;
 use tower::ServiceExt;
 
@@ -26,7 +26,12 @@ fn init() {
 
 fn make_app(pool: PgPool) -> axum::Router {
     init();
-    auth_backend::build_app(AppState { pool })
+    auth_backend::build_app(AppState {
+        pool,
+        resend_api_url: "http://127.0.0.1:9/emails".to_string(),
+        resend_api_key: Some("test-key".to_string()),
+        email_from: "Retail Banking <test@example.com>".to_string(),
+    })
 }
 
 async fn body_json(res: axum::response::Response) -> Value {
@@ -42,7 +47,9 @@ async fn get_session_cookie(pool: PgPool, email: &str, password: &str) -> String
                 .method("POST")
                 .uri("/api/auth/login")
                 .header(header::CONTENT_TYPE, "application/json")
-                .body(Body::from(json!({"email": email, "password": password}).to_string()))
+                .body(Body::from(
+                    json!({"email": email, "password": password}).to_string(),
+                ))
                 .unwrap(),
         )
         .await
@@ -67,7 +74,12 @@ async fn get_session_cookie(pool: PgPool, email: &str, password: &str) -> String
 #[sqlx::test(migrations = "../migrations")]
 async fn health_returns_200(pool: PgPool) {
     let res = make_app(pool)
-        .oneshot(Request::builder().uri("/health").body(Body::empty()).unwrap())
+        .oneshot(
+            Request::builder()
+                .uri("/health")
+                .body(Body::empty())
+                .unwrap(),
+        )
         .await
         .unwrap();
 
@@ -84,14 +96,19 @@ async fn login_valid_credentials_sets_cookie(pool: PgPool) {
                 .method("POST")
                 .uri("/api/auth/login")
                 .header(header::CONTENT_TYPE, "application/json")
-                .body(Body::from(json!({"email": ROOT_EMAIL, "password": PASSWORD}).to_string()))
+                .body(Body::from(
+                    json!({"email": ROOT_EMAIL, "password": PASSWORD}).to_string(),
+                ))
                 .unwrap(),
         )
         .await
         .unwrap();
 
     assert_eq!(res.status(), StatusCode::OK);
-    assert!(res.headers().contains_key(header::SET_COOKIE), "expected Set-Cookie");
+    assert!(
+        res.headers().contains_key(header::SET_COOKIE),
+        "expected Set-Cookie"
+    );
 }
 
 #[sqlx::test(migrations = "../migrations")]
@@ -102,7 +119,9 @@ async fn login_wrong_password_returns_401(pool: PgPool) {
                 .method("POST")
                 .uri("/api/auth/login")
                 .header(header::CONTENT_TYPE, "application/json")
-                .body(Body::from(json!({"email": ROOT_EMAIL, "password": "wrong"}).to_string()))
+                .body(Body::from(
+                    json!({"email": ROOT_EMAIL, "password": "wrong"}).to_string(),
+                ))
                 .unwrap(),
         )
         .await
@@ -119,7 +138,9 @@ async fn login_unknown_user_returns_401(pool: PgPool) {
                 .method("POST")
                 .uri("/api/auth/login")
                 .header(header::CONTENT_TYPE, "application/json")
-                .body(Body::from(json!({"email": "ghost@example.com", "password": PASSWORD}).to_string()))
+                .body(Body::from(
+                    json!({"email": "ghost@example.com", "password": PASSWORD}).to_string(),
+                ))
                 .unwrap(),
         )
         .await
@@ -200,7 +221,10 @@ async fn list_accounts_returns_array(pool: PgPool) {
     assert_eq!(res.status(), StatusCode::OK);
     let body = body_json(res).await;
     assert!(body.is_array(), "expected JSON array, got: {body}");
-    assert!(!body.as_array().unwrap().is_empty(), "user@example.com should have seeded accounts");
+    assert!(
+        !body.as_array().unwrap().is_empty(),
+        "user@example.com should have seeded accounts"
+    );
 }
 
 #[sqlx::test(migrations = "../migrations")]
@@ -284,6 +308,32 @@ async fn recent_activity_returns_array(pool: PgPool) {
     assert!(body.is_array());
 }
 
+#[sqlx::test(migrations = "../migrations")]
+async fn email_statement_returns_500_when_resend_key_missing(pool: PgPool) {
+    init();
+    let cookie = get_session_cookie(pool.clone(), ROOT_EMAIL, PASSWORD).await;
+    let app = auth_backend::build_app(AppState {
+        pool,
+        resend_api_url: "http://127.0.0.1:9/emails".to_string(),
+        resend_api_key: None,
+        email_from: "Retail Banking <test@example.com>".to_string(),
+    });
+
+    let res = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/transactions/email-statement?from=2024-01-01&to=2024-12-31")
+                .header(header::COOKIE, &cookie)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(res.status(), StatusCode::INTERNAL_SERVER_ERROR);
+}
+
 // ── GET /api/savings ──────────────────────────────────────────────────────────
 
 #[sqlx::test(migrations = "../migrations")]
@@ -304,7 +354,10 @@ async fn list_savings_goals_returns_array(pool: PgPool) {
     assert_eq!(res.status(), StatusCode::OK);
     let body = body_json(res).await;
     assert!(body.is_array());
-    assert!(!body.as_array().unwrap().is_empty(), "user@example.com should have seeded savings goals");
+    assert!(
+        !body.as_array().unwrap().is_empty(),
+        "user@example.com should have seeded savings goals"
+    );
 }
 
 // ── POST /api/bugreports (public) ─────────────────────────────────────────────
@@ -345,7 +398,12 @@ async fn create_bug_report_is_public(pool: PgPool) {
 async fn list_bug_reports_requires_auth(pool: PgPool) {
     init();
     let res = make_app(pool)
-        .oneshot(Request::builder().uri("/api/bugreports").body(Body::empty()).unwrap())
+        .oneshot(
+            Request::builder()
+                .uri("/api/bugreports")
+                .body(Body::empty())
+                .unwrap(),
+        )
         .await
         .unwrap();
 
