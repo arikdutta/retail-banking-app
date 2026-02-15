@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import {
   Search, Filter, Upload, X, ChevronLeft, ChevronRight,
-  FileDown, Loader2,
+  FileDown, Loader2, Mail,
 } from "lucide-react";
+import type { DateRange } from "react-day-picker";
+import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,6 +14,7 @@ import {
   Pagination, PaginationContent, PaginationEllipsis,
   PaginationItem, PaginationNext, PaginationPrevious,
 } from "@/components/ui/pagination";
+import { DateRangePicker, dateRangeSchema } from "@/components/date-range-picker";
 import { cn } from "@/lib/utils";
 import { useTransactions } from "@/hooks/data/use-transactions";
 import type { Transaction } from "@/bindings/Transaction";
@@ -87,6 +91,29 @@ async function downloadPdf(from: string, to: string, setDownloading: (v: boolean
     console.error(err);
   } finally {
     setDownloading(false);
+  }
+}
+
+async function emailPdf(
+  from: string,
+  to: string,
+  setEmailing: (v: boolean) => void,
+) {
+  setEmailing(true);
+  try {
+    const res = await fetch(`${API_URL}/api/transactions/email-statement?from=${from}&to=${to}`, {
+      method: "POST",
+      credentials: "include",
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error ?? `Email sending failed: ${res.status}`);
+    toast.success(`Statement sent to ${body.email}`);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Email sending failed";
+    console.error(err);
+    toast.error(message);
+  } finally {
+    setEmailing(false);
   }
 }
 
@@ -179,11 +206,12 @@ function DetailPanel({
 export default function PageTransactions() {
   const { page }   = routeApi.useSearch();
   const navigate   = useNavigate({ from: "/dashboard/transactions" });
-  const [selected, setSelected] = useState<Transaction | null>(null);
-  const [search, setSearch]     = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo]     = useState("");
+  const [selected, setSelected]   = useState<Transaction | null>(null);
+  const [search, setSearch]       = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [dateError, setDateError] = useState<string | undefined>(undefined);
   const [downloading, setDownloading] = useState(false);
+  const [emailing, setEmailing] = useState(false);
 
   const { data, isLoading, isFetching } = useTransactions(page);
 
@@ -204,7 +232,32 @@ export default function PageTransactions() {
     navigate({ search: () => ({ page: p }) });
   }
 
-  const canDownload = dateFrom !== "" && dateTo !== "" && dateTo >= dateFrom && !downloading;
+  const parsedRange = dateRangeSchema.safeParse(dateRange);
+  const canExport = parsedRange.success && !downloading && !emailing;
+
+  function handlePdf() {
+    if (!parsedRange.success) {
+      const issue = parsedRange.error.issues[0];
+      setDateError(issue?.message ?? "Invalid date range");
+      return;
+    }
+    setDateError(undefined);
+    const from = format(parsedRange.data.from, "yyyy-MM-dd");
+    const to   = format(parsedRange.data.to,   "yyyy-MM-dd");
+    downloadPdf(from, to, setDownloading);
+  }
+
+  function handleEmailPdf() {
+    if (!parsedRange.success) {
+      const issue = parsedRange.error.issues[0];
+      setDateError(issue?.message ?? "Invalid date range");
+      return;
+    }
+    setDateError(undefined);
+    const from = format(parsedRange.data.from, "yyyy-MM-dd");
+    const to   = format(parsedRange.data.to, "yyyy-MM-dd");
+    emailPdf(from, to, setEmailing);
+  }
 
   return (
     <div className="flex min-h-full gap-0">
@@ -229,30 +282,34 @@ export default function PageTransactions() {
           </Button>
 
           <div className="ml-auto flex items-center gap-2">
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="rounded-lg border bg-card px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500/30"
-            />
-            <span className="text-xs text-muted-foreground">to</span>
-            <input
-              type="date"
-              value={dateTo}
-              min={dateFrom}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="rounded-lg border bg-card px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-500/30"
+            <DateRangePicker
+              value={dateRange}
+              onChange={(r) => { setDateRange(r); setDateError(undefined); }}
+              error={dateError}
+              placeholder="Statement period"
             />
             <Button
               size="sm"
-              className="gap-1.5"
-              disabled={!canDownload}
-              onClick={() => downloadPdf(dateFrom, dateTo, setDownloading)}
+              className="gap-1.5 shrink-0"
+              disabled={!canExport}
+              onClick={handlePdf}
             >
               {downloading
                 ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 : <FileDown className="h-3.5 w-3.5" />}
-              PDF
+              Download PDF
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 shrink-0"
+              disabled={!canExport}
+              onClick={handleEmailPdf}
+            >
+              {emailing
+                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                : <Mail className="h-3.5 w-3.5" />}
+              Email PDF
             </Button>
           </div>
         </div>
