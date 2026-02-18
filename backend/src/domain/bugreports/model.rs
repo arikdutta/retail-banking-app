@@ -6,7 +6,21 @@ use strum::{Display, EnumIter, EnumString};
 use ts_rs::TS;
 use uuid::Uuid;
 
-#[derive(Debug, Default, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, Display, EnumString, EnumIter, sqlx::Type, TS)]
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    Display,
+    EnumString,
+    EnumIter,
+    sqlx::Type,
+    TS,
+)]
 #[ts(export, export_to = "../../frontend/bindings/")]
 #[sqlx(type_name = "varchar", rename_all = "PascalCase")]
 #[strum(serialize_all = "PascalCase")]
@@ -24,14 +38,14 @@ pub enum BugType {
 #[derive(Debug, Deserialize, TS)]
 #[ts(export, export_to = "../../frontend/bindings/")]
 pub struct AddBugReport {
-    pub bug_type:          BugType,
-    pub message:           String,
+    pub bug_type: BugType,
+    pub message: String,
     pub exception_message: Option<String>,
-    pub stack_trace:       Option<String>,
-    pub user_login:        Option<String>,
-    pub url:               Option<String>,
-    pub user_agent:        Option<String>,
-    pub application:       Option<String>,
+    pub stack_trace: Option<String>,
+    pub user_login: Option<String>,
+    pub url: Option<String>,
+    pub user_agent: Option<String>,
+    pub application: Option<String>,
 }
 
 impl AddBugReport {
@@ -49,34 +63,34 @@ impl AddBugReport {
 #[derive(Debug, Serialize, TS)]
 #[ts(export, export_to = "../../frontend/bindings/")]
 pub struct BugReport {
-    pub id:              i64,
-    pub unid:            Uuid,
-    pub bugtype:         String,
-    pub similarityhash:  i32,
-    pub message:         Option<String>,
+    pub id: i64,
+    pub unid: Uuid,
+    pub bugtype: String,
+    pub similarityhash: i32,
+    pub message: Option<String>,
     pub exceptionmessage: Option<String>,
-    pub stacktrace:      Option<String>,
-    pub userlogin:       Option<String>,
-    pub url:             Option<String>,
-    pub useragent:       Option<String>,
-    pub application:     Option<String>,
-    pub created:         DateTime<Utc>,
-    pub total_count:     i64,
-    pub similar_count:   i64,
+    pub stacktrace: Option<String>,
+    pub userlogin: Option<String>,
+    pub url: Option<String>,
+    pub useragent: Option<String>,
+    pub application: Option<String>,
+    pub created: DateTime<Utc>,
+    pub total_count: i64,
+    pub similar_count: i64,
 }
 
 #[derive(Debug, Serialize, TS)]
 #[ts(export, export_to = "../../frontend/bindings/")]
 pub struct BugPerDay {
-    pub date:     String,
+    pub date: String,
     pub bug_type: String,
-    pub count:    i64,
+    pub count: i64,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct BugReportQuery {
-    pub page:     Option<i64>,
+    pub page: Option<i64>,
     pub per_page: Option<i64>,
-    pub search:   Option<String>,
+    pub search: Option<String>,
     pub bug_type: Option<String>,
 }
