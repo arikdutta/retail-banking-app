@@ -1,6 +1,6 @@
 use axum::{
     extract::{FromRequestParts, Request},
-    http::{StatusCode, header, request::Parts},
+    http::{header, request::Parts, StatusCode},
     middleware::Next,
     response::{IntoResponse, Response},
 };
@@ -21,29 +21,54 @@ pub struct AuthUser {
 impl FromRequestParts<AppState> for AuthUser {
     type Rejection = Response;
 
-    async fn from_request_parts(parts: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
         let token = extract_session_cookie(&parts.headers)
             .or_else(|| extract_bearer_token(&parts.headers))
             .ok_or_else(|| {
-                (StatusCode::UNAUTHORIZED, axum::Json(json!({"error": "no session"}))).into_response()
+                (
+                    StatusCode::UNAUTHORIZED,
+                    axum::Json(json!({"error": "no session"})),
+                )
+                    .into_response()
             })?;
 
         let claims = verify_token(&token).map_err(|_| {
-            (StatusCode::UNAUTHORIZED, axum::Json(json!({"error": "invalid token"}))).into_response()
+            (
+                StatusCode::UNAUTHORIZED,
+                axum::Json(json!({"error": "invalid token"})),
+            )
+                .into_response()
         })?;
 
-        let role = sqlx::query_scalar!("SELECT role as \"role!\" FROM users WHERE unid = $1", claims.sub)
-            .fetch_optional(&state.pool)
-            .await
-            .map_err(|e| {
-                tracing::error!("AuthUser db: {e}");
-                (StatusCode::INTERNAL_SERVER_ERROR, axum::Json(json!({"error": "db error"}))).into_response()
-            })?
-            .ok_or_else(|| {
-                (StatusCode::UNAUTHORIZED, axum::Json(json!({"error": "user not found"}))).into_response()
-            })?;
+        let role = sqlx::query_scalar!(
+            "SELECT role as \"role!\" FROM users WHERE unid = $1",
+            claims.sub
+        )
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(|e| {
+            tracing::error!("AuthUser db: {e}");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                axum::Json(json!({"error": "db error"})),
+            )
+                .into_response()
+        })?
+        .ok_or_else(|| {
+            (
+                StatusCode::UNAUTHORIZED,
+                axum::Json(json!({"error": "user not found"})),
+            )
+                .into_response()
+        })?;
 
-        Ok(AuthUser { unid: claims.sub, role: role.parse().unwrap_or(Role::RegularUser) })
+        Ok(AuthUser {
+            unid: claims.sub,
+            role: role.parse().unwrap_or(Role::RegularUser),
+        })
     }
 }
 
@@ -54,10 +79,17 @@ pub struct AdminUser(pub AuthUser);
 impl FromRequestParts<AppState> for AdminUser {
     type Rejection = Response;
 
-    async fn from_request_parts(parts: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
         let user = AuthUser::from_request_parts(parts, state).await?;
         if !user.role.is_elevated() {
-            return Err((StatusCode::FORBIDDEN, axum::Json(json!({"error": "admin required"}))).into_response());
+            return Err((
+                StatusCode::FORBIDDEN,
+                axum::Json(json!({"error": "admin required"})),
+            )
+                .into_response());
         }
         Ok(AdminUser(user))
     }
@@ -70,10 +102,17 @@ pub struct RootUser(pub AuthUser);
 impl FromRequestParts<AppState> for RootUser {
     type Rejection = Response;
 
-    async fn from_request_parts(parts: &mut Parts, state: &AppState) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
         let user = AuthUser::from_request_parts(parts, state).await?;
         if user.role != Role::Root {
-            return Err((StatusCode::FORBIDDEN, axum::Json(json!({"error": "root required"}))).into_response());
+            return Err((
+                StatusCode::FORBIDDEN,
+                axum::Json(json!({"error": "root required"})),
+            )
+                .into_response());
         }
         Ok(RootUser(user))
     }
@@ -102,13 +141,21 @@ pub async fn require_auth(request: Request, next: Next) -> Response {
         Some(t) => t,
         None => {
             tracing::warn!(path, "require_auth: no session cookie");
-            return (StatusCode::UNAUTHORIZED, axum::Json(json!({"error": "no session"}))).into_response();
+            return (
+                StatusCode::UNAUTHORIZED,
+                axum::Json(json!({"error": "no session"})),
+            )
+                .into_response();
         }
     };
 
     if let Err(e) = verify_token(&token) {
         tracing::warn!(path, error = %e, "require_auth: invalid token");
-        return (StatusCode::UNAUTHORIZED, axum::Json(json!({"error": "invalid token"}))).into_response();
+        return (
+            StatusCode::UNAUTHORIZED,
+            axum::Json(json!({"error": "invalid token"})),
+        )
+            .into_response();
     }
 
     next.run(request).await
@@ -117,9 +164,9 @@ pub async fn require_auth(request: Request, next: Next) -> Response {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use axum::http::{HeaderMap, HeaderValue};
-    use jsonwebtoken::{EncodingKey, Header, encode};
     use crate::domain::auth::model::Claims;
+    use axum::http::{HeaderMap, HeaderValue};
+    use jsonwebtoken::{encode, EncodingKey, Header};
 
     static ENV_LOCK: std::sync::OnceLock<std::sync::Mutex<()>> = std::sync::OnceLock::new();
     fn env_lock() -> &'static std::sync::Mutex<()> {
@@ -135,7 +182,10 @@ mod tests {
     fn make_token_with_secret(exp: usize, secret: &str) -> String {
         encode(
             &Header::default(),
-            &Claims { sub: uuid::Uuid::new_v4(), exp },
+            &Claims {
+                sub: uuid::Uuid::new_v4(),
+                exp,
+            },
             &EncodingKey::from_secret(secret.as_bytes()),
         )
         .unwrap()
@@ -146,13 +196,19 @@ mod tests {
     #[test]
     fn extracts_session_from_single_cookie() {
         let headers = make_header("session=mytoken");
-        assert_eq!(extract_session_cookie(&headers), Some("mytoken".to_string()));
+        assert_eq!(
+            extract_session_cookie(&headers),
+            Some("mytoken".to_string())
+        );
     }
 
     #[test]
     fn extracts_session_from_multiple_cookies() {
         let headers = make_header("foo=bar; session=mytoken; baz=qux");
-        assert_eq!(extract_session_cookie(&headers), Some("mytoken".to_string()));
+        assert_eq!(
+            extract_session_cookie(&headers),
+            Some("mytoken".to_string())
+        );
     }
 
     #[test]
@@ -170,7 +226,10 @@ mod tests {
     #[test]
     fn handles_jwt_with_equals_padding_in_value() {
         let headers = make_header("session=abc.def.ghi==");
-        assert_eq!(extract_session_cookie(&headers), Some("abc.def.ghi==".to_string()));
+        assert_eq!(
+            extract_session_cookie(&headers),
+            Some("abc.def.ghi==".to_string())
+        );
     }
 
     // ── verify_token ─────────────────────────────────────────────────────────
@@ -217,14 +276,23 @@ mod tests {
     #[test]
     fn extracts_bearer_token() {
         let mut headers = HeaderMap::new();
-        headers.insert(header::AUTHORIZATION, HeaderValue::from_static("Bearer mytoken123"));
-        assert_eq!(extract_bearer_token(&headers), Some("mytoken123".to_string()));
+        headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_static("Bearer mytoken123"),
+        );
+        assert_eq!(
+            extract_bearer_token(&headers),
+            Some("mytoken123".to_string())
+        );
     }
 
     #[test]
     fn rejects_non_bearer_auth_scheme() {
         let mut headers = HeaderMap::new();
-        headers.insert(header::AUTHORIZATION, HeaderValue::from_static("Basic dXNlcjpwYXNz"));
+        headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_static("Basic dXNlcjpwYXNz"),
+        );
         assert_eq!(extract_bearer_token(&headers), None);
     }
 
@@ -239,16 +307,16 @@ mod tests {
     #[test]
     fn role_parse() {
         use std::str::FromStr;
-        assert_eq!(Role::from_str("Admin").unwrap(),  Role::Admin);
+        assert_eq!(Role::from_str("Admin").unwrap(), Role::Admin);
         assert_eq!(Role::from_str("RegularUser").unwrap(), Role::RegularUser);
-        assert_eq!(Role::from_str("Demo").unwrap(),   Role::Demo);
+        assert_eq!(Role::from_str("Demo").unwrap(), Role::Demo);
         assert!("unknown".parse::<Role>().is_err());
     }
 
     #[test]
     fn role_display_roundtrip() {
-        assert_eq!(Role::Admin.to_string(),  "Admin");
+        assert_eq!(Role::Admin.to_string(), "Admin");
         assert_eq!(Role::RegularUser.to_string(), "RegularUser");
-        assert_eq!(Role::Demo.to_string(),   "Demo");
+        assert_eq!(Role::Demo.to_string(), "Demo");
     }
 }
