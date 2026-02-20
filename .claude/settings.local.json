@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-Process -Name \"node\" -ErrorAction SilentlyContinue | Stop-Process -Force; cd c:\\\\Users\\\\dutta\\\\Rust\\\\retail-banking-app; pnpm install 2>&1; Write-Host \"exit: $LASTEXITCODE\")"
+    ]
+  }
+}
