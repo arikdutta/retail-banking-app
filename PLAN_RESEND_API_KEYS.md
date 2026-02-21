@@ -34,14 +34,14 @@ If using your own domain later, verify the domain in Resend first.
 6. Store the sender as:
 
 ```env
-EMAIL_FROM=Retail Banking <onboarding@resend.dev>
+EMAIL_FROM=Retail Banking <onboarding@mail.rustfinance.com>
 ```
 
 ## Local env example
 
 ```env
 RESEND_API_KEY=re_xxxxxxxxx
-EMAIL_FROM=Retail Banking <onboarding@resend.dev>
+EMAIL_FROM=Retail Banking <onboarding@mail.rustfinance.com>
 RESEND_API_URL=https://api.resend.com/emails
 ```
 
