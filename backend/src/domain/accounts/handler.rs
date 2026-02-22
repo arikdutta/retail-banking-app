@@ -1,8 +1,8 @@
 use axum::{
-    Json,
     extract::{Path, State},
     http::StatusCode,
     response::IntoResponse,
+    Json,
 };
 use serde_json::json;
 use uuid::Uuid;
@@ -12,15 +12,16 @@ use crate::domain::auth::middleware::AuthUser;
 use crate::state::AppState;
 
 /// GET /api/accounts
-pub async fn list_accounts(
-    user: AuthUser,
-    State(state): State<AppState>,
-) -> impl IntoResponse {
+pub async fn list_accounts(user: AuthUser, State(state): State<AppState>) -> impl IntoResponse {
     match AccountsDb::list_for_user(&state.pool, user.unid).await {
         Ok(rows) => Json(json!(rows)).into_response(),
         Err(e) => {
             tracing::error!("accounts list: {e}");
-            (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": e.to_string()}))).into_response()
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": e.to_string()})),
+            )
+                .into_response()
         }
     }
 }
@@ -37,7 +38,11 @@ pub async fn get_account(
         Ok(None) => (StatusCode::NOT_FOUND, Json(json!({"error": "not found"}))).into_response(),
         Err(e) => {
             tracing::error!("accounts get {id}: {e}");
-            (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": e.to_string()}))).into_response()
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": e.to_string()})),
+            )
+                .into_response()
         }
     }
 }

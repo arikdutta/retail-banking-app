@@ -6,7 +6,10 @@ use super::model::SavingsGoal;
 pub struct SavingsGoalsDb;
 
 impl SavingsGoalsDb {
-    pub async fn list_for_user(pool: &PgPool, user_unid: Uuid) -> Result<Vec<SavingsGoal>, sqlx::Error> {
+    pub async fn list_for_user(
+        pool: &PgPool,
+        user_unid: Uuid,
+    ) -> Result<Vec<SavingsGoal>, sqlx::Error> {
         sqlx::query_as!(
             SavingsGoal,
             r#"
