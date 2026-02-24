@@ -1,9 +1,4 @@
-use axum::{
-    Json,
-    extract::State,
-    http::StatusCode,
-    response::IntoResponse,
-};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use serde_json::json;
 
 use super::db::SavingsGoalsDb;
@@ -19,7 +14,11 @@ pub async fn list_savings_goals(
         Ok(rows) => Json(json!(rows)).into_response(),
         Err(e) => {
             tracing::error!("savings_goals list: {e}");
-            (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": e.to_string()}))).into_response()
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": e.to_string()})),
+            )
+                .into_response()
         }
     }
 }
