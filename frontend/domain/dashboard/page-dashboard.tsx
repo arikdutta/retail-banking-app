@@ -19,6 +19,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -242,26 +243,30 @@ function WalletCard() {
   );
 }
 
+const ACTION_CLS = "flex flex-col items-center gap-1.5 rounded-xl border bg-card p-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
+
 function WalletActions() {
-  const actions = [
-    { label: "Send",      icon: Send },
-    { label: "Receive",   icon: Download },
-    { label: "Invoicing", icon: FileText },
-    { label: "More",      icon: MoreHorizontal },
+  const plainActions = [
+    { label: "Send",    icon: Send },
+    { label: "Receive", icon: Download },
+    { label: "More",    icon: MoreHorizontal },
   ];
   return (
     <div className="grid grid-cols-4 gap-2">
-      {actions.map(({ label, icon: Icon }) => (
-        <button
-          key={label}
-          className="flex flex-col items-center gap-1.5 rounded-xl border bg-card p-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
+      {plainActions.map(({ label, icon: Icon }) => (
+        <button key={label} className={ACTION_CLS}>
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/30">
             <Icon className="h-4 w-4" />
           </div>
           {label}
         </button>
       ))}
+      <Link to="/dashboard/invoices" className={ACTION_CLS}>
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/30">
+          <FileText className="h-4 w-4" />
+        </div>
+        Invoicing
+      </Link>
     </div>
   );
 }

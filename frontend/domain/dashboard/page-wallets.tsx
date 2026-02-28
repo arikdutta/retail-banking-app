@@ -15,6 +15,7 @@ import {
   ShoppingCart,
   MoreVertical,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -49,11 +50,11 @@ const currencies = [
 ];
 
 const quickLinks = [
-  { label: "Deposit",   icon: ArrowDownToLine },
-  { label: "Send",      icon: Send },
-  { label: "Receive",   icon: Download },
-  { label: "Invoicing", icon: FileText },
-  { label: "Checkout",  icon: ShoppingCart },
+  { label: "Deposit",   icon: ArrowDownToLine, href: null },
+  { label: "Send",      icon: Send,            href: null },
+  { label: "Receive",   icon: Download,        href: null },
+  { label: "Invoicing", icon: FileText,        href: "/dashboard/invoices" },
+  { label: "Checkout",  icon: ShoppingCart,    href: null },
 ];
 
 // ─── Components ───────────────────────────────────────────────────────────────
@@ -131,17 +132,22 @@ export default function PageWallets() {
             <p className="text-sm font-semibold">Quick Links</p>
           </div>
           <div className="flex gap-2">
-            {quickLinks.map(({ label, icon: Icon }) => (
-              <button
-                key={label}
-                className="flex flex-1 flex-col items-center gap-1.5 rounded-xl border bg-muted/30 p-3 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/30">
-                  <Icon className="h-4 w-4" />
-                </div>
-                {label}
-              </button>
-            ))}
+            {quickLinks.map(({ label, icon: Icon, href }) => {
+              const cls = "flex flex-1 flex-col items-center gap-1.5 rounded-xl border bg-muted/30 p-3 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors";
+              const inner = (
+                <>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/30">
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  {label}
+                </>
+              );
+              return href ? (
+                <Link key={label} to={href} className={cls}>{inner}</Link>
+              ) : (
+                <button key={label} className={cls}>{inner}</button>
+              );
+            })}
           </div>
         </div>
 
