@@ -1,0 +1,108 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO invoices (\n                user_unid, invoice_number,\n                recipient_name, recipient_email, recipient_iban,\n                description, amount, currency,\n                due_date, notes\n            )\n            VALUES (\n                $1,\n                'INV-' || LPAD(FLOOR(RANDOM() * 1000000)::TEXT, 6, '0'),\n                $2, $3, $4,\n                $5, $6, $7,\n                $8, $9\n            )\n            RETURNING unid, user_unid, invoice_number,\n                      recipient_name, recipient_email, recipient_iban,\n                      description,\n                      amount, currency,\n                      status AS \"status: _\",\n                      due_date, notes,\n                      created_at, updated_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "unid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_unid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "invoice_number",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "recipient_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "recipient_email",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "recipient_iban",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "amount",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 8,
+        "name": "currency",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "status: _",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "due_date",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 11,
+        "name": "notes",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 12,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 13,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Numeric",
+        "Text",
+        "Timestamptz",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "c0c503ac2b6eba5274ea6d13fb55b03381940a563eec2ac11f75ef11756af876"
+}
