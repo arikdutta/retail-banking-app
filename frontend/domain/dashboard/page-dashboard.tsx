@@ -261,7 +261,7 @@ function WalletActions() {
           {label}
         </button>
       ))}
-      <Link to="/dashboard/invoices" className={ACTION_CLS}>
+      <Link to="/dashboard/invoices" search={{ page: 1 }} className={ACTION_CLS}>
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/30">
           <FileText className="h-4 w-4" />
         </div>
