@@ -14,8 +14,8 @@ import { cn } from "@/lib/utils";
 
 export const dateRangeSchema = z
   .object({
-    from: z.date({ required_error: "Start date required" }),
-    to:   z.date({ required_error: "End date required" }),
+    from: z.date({ error: "Start date required" }),
+    to:   z.date({ error: "End date required" }),
   })
   .refine((d) => d.from <= d.to, {
     message: "End date must be on or after start date",
