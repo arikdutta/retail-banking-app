@@ -7,6 +7,9 @@
 #   ./deploy_prod.sh --skip-preflight       # ignore local uncommitted changes
 set -e
 
+# Ensure GitHub CLI is on PATH (winget installs it here on Windows)
+export PATH="$PATH:/c/Program Files/GitHub CLI"
+
 FORCE=false
 SKIP_BACKEND=false
 SKIP_FRONTEND=false
@@ -55,7 +58,7 @@ fi
 echo "✅ SQLx offline data is up to date"
 
 echo "📦 Regenerating ts-rs bindings..."
-(cd backend && cargo test export_bindings)
+(cd backend && cargo nextest run export_bindings)
 if ! git diff --quiet frontend/bindings/; then
     echo "📝 Bindings changed — committing and pushing..."
     git add frontend/bindings/
