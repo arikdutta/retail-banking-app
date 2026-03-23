@@ -14,6 +14,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json pnpm-workspace.yaml .npmrc ./
 COPY frontend/ ./frontend/
+COPY backend/bindings/ ./backend/bindings/
 
 ARG VITE_API_URL
 ENV VITE_API_URL=$VITE_API_URL
