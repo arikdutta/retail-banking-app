@@ -14,7 +14,9 @@ pub fn build_app(state: AppState) -> Router {
         .merge(domain::accounts::routes())
         .merge(domain::transactions::routes())
         .merge(domain::invoices::routes())
+        .merge(domain::recipients::routes())
         .merge(domain::savings_goals::routes())
+        .merge(domain::transfers::routes())
         .merge(domain::bugreports::protected_routes())
         .merge(domain::roleaccesses::routes())
         .layer(middleware::from_fn(require_auth));
