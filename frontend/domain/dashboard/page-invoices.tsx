@@ -28,6 +28,8 @@ import {
   useCreateInvoice,
   useUpdateInvoiceStatus,
 } from "@/hooks/data/use-invoices";
+import { useAccounts } from "@/hooks/data/use-accounts";
+import { usePayInvoice } from "@/hooks/data/use-transfers";
 import type { Invoice } from "@/bindings/Invoice";
 import type { InvoiceStatus } from "../../../backend/bindings/InvoiceStatus";
 
@@ -187,16 +189,39 @@ function DetailPanel({
   hasPrev: boolean;
   hasNext: boolean;
 }) {
-  const { mutate: updateStatus, isPending } = useUpdateInvoiceStatus();
+  const { mutate: updateStatus, isPending: statusPending } = useUpdateInvoiceStatus();
+  const { mutate: payInvoice,   isPending: payPending }    = usePayInvoice(invoice.unid);
+  const { data: accounts = [] }                            = useAccounts();
+  const [payAccountId, setPayAccountId]                    = useState("");
+  const [showPayForm, setShowPayForm]                      = useState(false);
   const nextStatus = STATUS_NEXT[invoice.status];
+  const isPaying   = nextStatus === "paid";
+  const isPending  = statusPending || payPending;
 
   function handleAdvance() {
-    if (!nextStatus) return;
+    if (!nextStatus || isPaying) return;
     updateStatus(
       { id: invoice.unid, status: nextStatus },
       {
         onSuccess: () => toast.success(`Invoice marked as ${nextStatus}`),
         onError:   (e) => toast.error(e.message),
+      },
+    );
+  }
+
+  function handlePay() {
+    if (!payAccountId) {
+      toast.error("Select an account to pay from.");
+      return;
+    }
+    payInvoice(
+      { from_account_unid: payAccountId },
+      {
+        onSuccess: () => {
+          toast.success("Invoice paid.");
+          setShowPayForm(false);
+        },
+        onError: (e) => toast.error(e.message),
       },
     );
   }
@@ -285,18 +310,70 @@ function DetailPanel({
           ))}
       </div>
 
-      {/* Status advance */}
+      {/* Status advance / Pay */}
       {nextStatus && (
-        <div className="p-4 border-t">
-          <Button
-            size="sm"
-            className="w-full"
-            disabled={isPending}
-            onClick={handleAdvance}
-          >
-            {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />}
-            Mark as {capitalize(nextStatus)}
-          </Button>
+        <div className="p-4 border-t space-y-2">
+          {isPaying ? (
+            showPayForm ? (
+              <>
+                <select
+                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500/30"
+                  value={payAccountId}
+                  onChange={(e) => setPayAccountId(e.target.value)}
+                >
+                  <option value="">Select account…</option>
+                  {accounts.map((a) => (
+                    <option key={a.unid} value={a.unid}>
+                      {a.label} —{" "}
+                      {Number(a.balance).toLocaleString("en-US", {
+                        style: "currency",
+                        currency: a.currency,
+                      })}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    disabled={isPending}
+                    onClick={() => setShowPayForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    disabled={isPending}
+                    onClick={handlePay}
+                  >
+                    {payPending && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />}
+                    Confirm
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <Button
+                size="sm"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={isPending}
+                onClick={() => setShowPayForm(true)}
+              >
+                Pay Invoice
+              </Button>
+            )
+          ) : (
+            <Button
+              size="sm"
+              className="w-full"
+              disabled={isPending}
+              onClick={handleAdvance}
+            >
+              {statusPending && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />}
+              Mark as {capitalize(nextStatus)}
+            </Button>
+          )}
         </div>
       )}
     </div>

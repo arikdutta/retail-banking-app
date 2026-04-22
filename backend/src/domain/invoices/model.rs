@@ -41,6 +41,12 @@ pub struct Invoice {
 
 #[derive(Debug, Deserialize, TS)]
 #[ts(export, export_to = "../../frontend/bindings/")]
+pub struct PayInvoiceRequest {
+    pub from_account_unid: Uuid,
+}
+
+#[derive(Debug, Deserialize, TS)]
+#[ts(export, export_to = "../../frontend/bindings/")]
 pub struct CreateInvoiceRequest {
     pub recipient_name: String,
     pub recipient_email: Option<String>,
