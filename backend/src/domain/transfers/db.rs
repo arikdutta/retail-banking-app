@@ -1,3 +1,4 @@
+use rust_decimal::Decimal;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -34,6 +35,22 @@ impl From<sqlx::Error> for TransferError {
     }
 }
 
+#[derive(Debug)]
+struct AccountRow {
+    unid: Uuid,
+    user_unid: Uuid,
+    label: String,
+    iban: Option<String>,
+    balance: Decimal,
+    currency: String,
+}
+
+#[derive(Debug)]
+struct RecipientRow {
+    name: String,
+    iban: Option<String>,
+}
+
 impl TransfersDb {
     pub async fn execute(
         pool: &PgPool,
@@ -53,7 +70,8 @@ impl TransfersDb {
         let mut tx = pool.begin().await?;
 
         // Lock and fetch source account — verify ownership and balance.
-        let src = sqlx::query!(
+        let src = sqlx::query_as!(
+            AccountRow,
             r#"
             SELECT unid, user_unid, label, iban, balance, currency
             FROM accounts
@@ -76,7 +94,8 @@ impl TransfersDb {
         // Resolve counterparty name and IBAN.
         let (counterparty_name, counterparty_iban): (String, Option<String>) =
             if let Some(recipient_unid) = req.to_recipient_unid {
-                let r = sqlx::query!(
+                let r = sqlx::query_as!(
+                    RecipientRow,
                     "SELECT name, iban FROM recipients WHERE unid = $1 AND user_unid = $2",
                     recipient_unid,
                     user_unid,
@@ -88,9 +107,10 @@ impl TransfersDb {
             } else {
                 // Own-account transfer: fetch destination account.
                 let dest_id = req.to_account_unid.unwrap();
-                let dest = sqlx::query!(
+                let dest = sqlx::query_as!(
+                    AccountRow,
                     r#"
-                    SELECT unid, user_unid, label, iban, balance
+                    SELECT unid, user_unid, label, iban, balance, currency
                     FROM accounts
                     WHERE unid = $1 AND closed_at IS NULL
                     FOR UPDATE
@@ -106,12 +126,12 @@ impl TransfersDb {
                 }
 
                 // Credit destination account.
-                sqlx::query!(
-                    "UPDATE accounts SET balance = balance + $1, updated_at = now() WHERE unid = $2",
+                sqlx::query_scalar!(
+                    "UPDATE accounts SET balance = balance + $1, updated_at = now() WHERE unid = $2 RETURNING unid",
                     req.amount,
                     dest_id,
                 )
-                .execute(&mut *tx)
+                .fetch_one(&mut *tx)
                 .await?;
 
                 // Insert transfer_in on destination.
@@ -119,13 +139,14 @@ impl TransfersDb {
                     .description
                     .clone()
                     .unwrap_or_else(|| format!("Transfer from {}", src.label));
-                sqlx::query!(
+                sqlx::query_scalar!(
                     r#"
                     INSERT INTO transactions (
                         account_unid, transaction_type, description, category,
                         amount, currency, counterparty_name, counterparty_iban, reference, status
                     )
                     VALUES ($1, 'transfer_in', $2, 'transfer', $3, $4, $5, $6, $7, 'completed')
+                    RETURNING unid
                     "#,
                     dest_id,
                     desc,
@@ -135,19 +156,19 @@ impl TransfersDb {
                     src.iban,
                     req.reference,
                 )
-                .execute(&mut *tx)
+                .fetch_one(&mut *tx)
                 .await?;
 
                 (dest.label, dest.iban)
             };
 
         // Debit source account.
-        sqlx::query!(
-            "UPDATE accounts SET balance = balance - $1, updated_at = now() WHERE unid = $2",
+        sqlx::query_scalar!(
+            "UPDATE accounts SET balance = balance - $1, updated_at = now() WHERE unid = $2 RETURNING unid",
             req.amount,
             req.from_account_unid,
         )
-        .execute(&mut *tx)
+        .fetch_one(&mut *tx)
         .await?;
 
         // Insert transfer_out on source — returned to caller.

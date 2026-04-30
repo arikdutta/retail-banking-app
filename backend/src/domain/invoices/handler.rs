@@ -4,6 +4,7 @@ use axum::{
     response::IntoResponse,
     Json,
 };
+use rust_decimal::Decimal;
 use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
@@ -12,6 +13,15 @@ use super::db::InvoicesDb;
 use super::model::{CreateInvoiceRequest, PayInvoiceRequest};
 use crate::domain::auth::middleware::AuthUser;
 use crate::state::AppState;
+
+#[derive(Debug)]
+struct InvoiceAccount {
+    user_unid: Uuid,
+    label: String,
+    iban: Option<String>,
+    balance: Decimal,
+    currency: String,
+}
 
 #[derive(Deserialize)]
 pub struct InvoiceListQuery {
@@ -152,7 +162,8 @@ pub async fn pay_invoice(
     };
 
     // Lock + verify source account.
-    let src = match sqlx::query!(
+    let src = match sqlx::query_as!(
+        InvoiceAccount,
         "SELECT user_unid, label, iban, balance, currency FROM accounts WHERE unid = $1 AND closed_at IS NULL FOR UPDATE",
         body.from_account_unid,
     )
@@ -194,21 +205,22 @@ pub async fn pay_invoice(
 
     // Debit account, insert transaction, mark invoice paid — all in one tx.
     let steps: Result<(), sqlx::Error> = async {
-        sqlx::query!(
-            "UPDATE accounts SET balance = balance - $1, updated_at = now() WHERE unid = $2",
+        sqlx::query_scalar!(
+            "UPDATE accounts SET balance = balance - $1, updated_at = now() WHERE unid = $2 RETURNING unid",
             invoice.amount,
             body.from_account_unid,
         )
-        .execute(&mut *db_tx)
+        .fetch_one(&mut *db_tx)
         .await?;
 
-        sqlx::query!(
+        sqlx::query_scalar!(
             r#"
             INSERT INTO transactions (
                 account_unid, transaction_type, description, category,
                 amount, currency, counterparty_name, counterparty_iban, reference, status
             )
             VALUES ($1, 'transfer_out', $2, 'transfer', $3, $4, $5, $6, $7, 'completed')
+            RETURNING unid
             "#,
             body.from_account_unid,
             format!("Payment for invoice {}", invoice.invoice_number),
@@ -218,14 +230,14 @@ pub async fn pay_invoice(
             invoice.recipient_iban,
             invoice.invoice_number,
         )
-        .execute(&mut *db_tx)
+        .fetch_one(&mut *db_tx)
         .await?;
 
-        sqlx::query!(
-            "UPDATE invoices SET status = 'paid', updated_at = now() WHERE unid = $1",
+        sqlx::query_scalar!(
+            "UPDATE invoices SET status = 'paid', updated_at = now() WHERE unid = $1 RETURNING unid",
             id,
         )
-        .execute(&mut *db_tx)
+        .fetch_one(&mut *db_tx)
         .await?;
 
         Ok(())
