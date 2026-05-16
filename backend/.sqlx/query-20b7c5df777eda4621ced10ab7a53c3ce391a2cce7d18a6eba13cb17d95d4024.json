@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE accounts SET balance = balance + $1, updated_at = now() WHERE unid = $2 RETURNING unid",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "unid",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Numeric",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "20b7c5df777eda4621ced10ab7a53c3ce391a2cce7d18a6eba13cb17d95d4024"
+}
