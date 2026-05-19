@@ -65,11 +65,24 @@ echo "✅ Lockfile up to date"
 # tests. Splitting into two runs triggered a Windows Defender LNK1104 race:
 # Defender holds the binary after the first run, causing the second link to
 # fail. One run = one link = no race.
-# The sqlx prepare step also compiles and can leave a binary Defender locks.
-# Remove stale binaries before nextest to avoid the race.
+# On Windows, Defender may hold the stale binary open so rm -f silently fails.
+# Rename it away (Windows allows rename on locked files) then retry on LNK1104.
 echo "🧪 Running backend tests (includes ts-rs binding generation)..."
-rm -f backend/target/debug/deps/auth_backend-*.exe
-(cd backend && cargo nextest run --no-fail-fast)
+for f in backend/target/debug/deps/auth_backend-*.exe; do
+    [ -f "$f" ] && mv "$f" "${f}.bak" 2>/dev/null || true
+done
+for attempt in 1 2 3; do
+    (cd backend && cargo nextest run --no-fail-fast) && break
+    if [ $attempt -eq 3 ]; then
+        echo "❌ Tests failed after 3 attempts"
+        exit 1
+    fi
+    echo "⚠️  LNK1104 race (attempt $attempt/3) — waiting 15s for Defender to release lock..."
+    for f in backend/target/debug/deps/auth_backend-*.exe; do
+        [ -f "$f" ] && mv "$f" "${f}.bak" 2>/dev/null || true
+    done
+    sleep 15
+done
 echo "✅ Backend tests passed"
 
 echo "📦 Checking ts-rs bindings..."
