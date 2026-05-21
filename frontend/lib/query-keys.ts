@@ -1,0 +1,10 @@
+export const queryKeys = {
+  me: () => ["me"] as const,
+  dashboardStats: () => ["dashboard-stats"] as const,
+  dashboardUsers: () => ["dashboard-users"] as const,
+  bugreports: {
+    all: () => ["bugreports"] as const,
+    list: (page: number, search: string, bugType: string) =>
+      ["bugreports", page, search, bugType] as const,
+  },
+};

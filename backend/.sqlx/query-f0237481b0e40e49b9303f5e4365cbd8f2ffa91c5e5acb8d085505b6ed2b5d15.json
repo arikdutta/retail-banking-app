@@ -1,0 +1,100 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                b.id, b.unid, b.bugtype, b.similarityhash, b.message, b.exceptionmessage,\n                b.stacktrace, b.userlogin, b.url, b.useragent, b.application, b.created,\n                1::bigint AS \"total_count!\",\n                (SELECT COUNT(*) FROM public.bugreports b2 WHERE b2.similarityhash = b.similarityhash) AS \"similar_count!\"\n            FROM public.bugreports b\n            WHERE b.unid = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "unid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "bugtype",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "similarityhash",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "message",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "exceptionmessage",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "stacktrace",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "userlogin",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 8,
+        "name": "url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "useragent",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 10,
+        "name": "application",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 11,
+        "name": "created",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 12,
+        "name": "total_count!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 13,
+        "name": "similar_count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "f0237481b0e40e49b9303f5e4365cbd8f2ffa91c5e5acb8d085505b6ed2b5d15"
+}
