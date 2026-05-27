@@ -83,7 +83,7 @@ export function NavUser({ user }: Props) {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link to="/account/profile">
+                <Link to="/dashboard/settings">
                   <User />
                   Account
                 </Link>
