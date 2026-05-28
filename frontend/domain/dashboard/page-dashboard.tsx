@@ -30,6 +30,14 @@ import { useRecentActivity } from "@/hooks/data/use-recent-activity";
 import { useSavings } from "@/hooks/data/use-savings";
 import { useDonutStats } from "@/hooks/data/use-donut-stats";
 
+const AVATAR_COLORS = ["bg-purple-500", "bg-blue-600", "bg-green-500", "bg-indigo-500", "bg-rose-500"];
+const SAVINGS_COLORS = ["bg-blue-600", "bg-blue-400"];
+const DONUT_COLORS   = ["#3B82F6", "#93C5FD", "#DBEAFE"];
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function PromoBanner() {
@@ -78,7 +86,7 @@ function StatCards() {
       {(data ?? []).map((card) => (
         <div key={card.label} className="rounded-xl border bg-card p-4">
           <p className="text-xs text-muted-foreground">{card.label}</p>
-          <p className="mt-1 text-lg font-bold tracking-tight">{card.value}</p>
+          <p className="mt-1 text-lg font-bold tracking-tight">{card.balance.toLocaleString("en-US", { style: "currency", currency: card.currency })}</p>
           <div className="mt-2 flex items-center gap-1">
             {card.trend > 0 ? (
               <ArrowUpRight className="h-3 w-3 text-emerald-500" />
@@ -129,7 +137,7 @@ function MoneyFlowChart() {
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={data ?? []} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-            <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+            <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={fmtDate} />
             <YAxis
               tick={{ fontSize: 11 }}
               tickLine={false}
@@ -176,26 +184,27 @@ function RecentTransactions() {
         </div>
       ) : (
         <div className="space-y-3">
-          {(data ?? []).map((tx) => (
+          {(data ?? []).map((tx, i) => (
             <div key={tx.id} className="flex items-center gap-3">
-              <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white", tx.color)}>
-                {tx.initials}
+              <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white", AVATAR_COLORS[i % AVATAR_COLORS.length])}>
+                {tx.description.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{tx.name}</p>
-                <p className="text-xs text-muted-foreground">{tx.date}</p>
+                <p className="text-sm font-medium truncate">{tx.description}</p>
+                <p className="text-xs text-muted-foreground">{fmtDate(tx.timestamp)}</p>
               </div>
               <div className="text-right shrink-0">
                 <p className={cn("text-sm font-semibold", tx.amount > 0 ? "text-emerald-500" : "")}>
                   {tx.amount > 0 ? "+" : ""}
-                  {tx.amount.toLocaleString("en-US", { style: "currency", currency: "USD" })}
+                  {tx.amount.toLocaleString("en-US", { style: "currency", currency: tx.currency })}
                 </p>
                 <Badge
                   variant="outline"
                   className={cn(
                     "mt-0.5 text-[10px] px-1.5 py-0 border-0 h-4",
-                    tx.status === "success" && "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30",
-                    tx.status === "pending" && "bg-amber-50 text-amber-600 dark:bg-amber-950/30",
+                    tx.status === "completed" && "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30",
+                    tx.status === "pending"   && "bg-amber-50 text-amber-600 dark:bg-amber-950/30",
+                    tx.status === "failed"    && "bg-red-50 text-red-600 dark:bg-red-950/30",
                   )}
                 >
                   {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
@@ -300,18 +309,18 @@ function RecentActivity() {
         </div>
       ) : (
         <div className="space-y-3">
-          {(data ?? []).map((item) => (
+          {(data ?? []).map((item, i) => (
             <div key={item.id} className="flex items-center gap-3">
-              <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white", item.color)}>
-                {item.initials}
+              <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white", AVATAR_COLORS[i % AVATAR_COLORS.length])}>
+                {item.merchant_name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium leading-tight">{item.name}</p>
-                <p className="text-[10px] text-muted-foreground">{item.date}</p>
+                <p className="text-sm font-medium leading-tight">{item.merchant_name}</p>
+                <p className="text-[10px] text-muted-foreground">{fmtDate(item.timestamp)}</p>
               </div>
               <p className={cn("text-sm font-semibold shrink-0", item.amount > 0 ? "text-emerald-500" : "")}>
                 {item.amount > 0 ? "+" : ""}
-                {item.amount.toFixed(2)}
+                {item.amount.toLocaleString("en-US", { style: "currency", currency: item.currency })}
               </p>
             </div>
           ))}
@@ -344,17 +353,20 @@ function SavingsSection() {
         </div>
       ) : (
         <div className="space-y-4">
-          {(data ?? []).map((item) => (
-            <div key={item.name}>
-              <div className="mb-1.5 flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">{item.name}</span>
-                <span className="font-semibold">${item.amount}</span>
+          {(data ?? []).map((item, i) => {
+            const progress = Math.round((item.current_amount / item.target_amount) * 100);
+            return (
+              <div key={item.id}>
+                <div className="mb-1.5 flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">{item.name}</span>
+                  <span className="font-semibold">{item.current_amount.toLocaleString("en-US", { style: "currency", currency: item.currency })}</span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                  <div className={cn("h-full rounded-full transition-all", SAVINGS_COLORS[i % SAVINGS_COLORS.length])} style={{ width: `${progress}%` }} />
+                </div>
               </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                <div className={cn("h-full rounded-full transition-all", item.color)} style={{ width: `${item.progress}%` }} />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -386,18 +398,18 @@ function StatisticsDonut() {
       ) : (
         <div className="flex items-center gap-3">
           <PieChart width={90} height={90}>
-            <Pie data={data ?? []} cx={40} cy={40} innerRadius={24} outerRadius={42} dataKey="value" strokeWidth={0}>
-              {(data ?? []).map((entry, i) => (
-                <Cell key={i} fill={entry.color} />
+            <Pie data={data ?? []} cx={40} cy={40} innerRadius={24} outerRadius={42} dataKey="amount" strokeWidth={0}>
+              {(data ?? []).map((_entry, i) => (
+                <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]!} />
               ))}
             </Pie>
           </PieChart>
           <div className="space-y-1.5 flex-1">
-            {(data ?? []).map((d) => (
-              <div key={d.name} className="flex items-center gap-2 text-xs">
-                <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ background: d.color }} />
-                <span className="text-muted-foreground truncate">{d.name}</span>
-                <span className="ml-auto font-semibold">${d.value.toLocaleString()}</span>
+            {(data ?? []).map((d, i) => (
+              <div key={d.category} className="flex items-center gap-2 text-xs">
+                <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ background: DONUT_COLORS[i % DONUT_COLORS.length] }} />
+                <span className="text-muted-foreground truncate">{d.label}</span>
+                <span className="ml-auto font-semibold">{d.amount.toLocaleString("en-US", { style: "currency", currency: d.currency })}</span>
               </div>
             ))}
           </div>

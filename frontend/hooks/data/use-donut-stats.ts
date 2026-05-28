@@ -1,6 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 
-type DonutEntry = { name: string; value: number; color: string };
+type DonutEntry = {
+  category: string;
+  label: string;
+  amount: number;
+  currency: string;
+};
 
 export function useDonutStats() {
   return useQuery<DonutEntry[]>({

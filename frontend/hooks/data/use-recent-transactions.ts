@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 
 type Transaction = {
-  id: number;
-  name: string;
-  date: string;
+  id: string;
+  description: string;
+  category: string;
   amount: number;
-  status: string;
-  color: string;
-  initials: string;
+  currency: string;
+  timestamp: string;
+  status: "completed" | "pending" | "failed";
 };
 
 export function useRecentTransactions() {

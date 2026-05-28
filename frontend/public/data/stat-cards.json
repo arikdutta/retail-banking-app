@@ -1,5 +1,5 @@
 [
-  { "label": "Business account", "value": "$24,098.00", "trend": 2.5 },
-  { "label": "Tax Reserve",      "value": "$2,456.89",  "trend": -0.8 },
-  { "label": "Savings",          "value": "$1,980.00",  "trend": 5.2 }
+  { "id": "b8c9d0e1-f2a3-4567-bcde-678901234567", "account_id": "acc-001", "label": "Business account", "balance": 24098.00, "currency": "USD", "trend": 2.5  },
+  { "id": "c9d0e1f2-a3b4-5678-cdef-789012345678", "account_id": "acc-002", "label": "Tax Reserve",      "balance": 2456.89,  "currency": "USD", "trend": -0.8 },
+  { "id": "d0e1f2a3-b4c5-6789-defa-890123456789", "account_id": "acc-003", "label": "Savings",          "balance": 1980.00,  "currency": "USD", "trend": 5.2  }
 ]

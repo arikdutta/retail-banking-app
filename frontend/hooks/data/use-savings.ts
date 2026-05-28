@@ -1,6 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
-type SavingsItem = { name: string; amount: number; progress: number; color: string };
+type SavingsItem = {
+  id: string;
+  name: string;
+  current_amount: number;
+  target_amount: number;
+  currency: string;
+};
 
 export function useSavings() {
   return useQuery<SavingsItem[]>({
