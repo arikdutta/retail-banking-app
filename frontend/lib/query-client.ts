@@ -13,7 +13,7 @@ function onQueryError(error: Error, context?: string) {
 
 export const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { staleTime: 1000 * 60 },
+    queries: { staleTime: 1000 * 60, refetchOnWindowFocus: "always" },
   },
   queryCache: new QueryCache({
     onError: (error, query) => onQueryError(error, String(query.queryKey[0] ?? "")),
