@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useMe } from "@/hooks/use-me";
+import { useMe } from "@/hooks/data/use-me";
 
 const API_URL = import.meta.env["VITE_API_URL"] ?? "http://localhost:3001";
 
