@@ -1,0 +1,4 @@
+[
+  { "name": "Mutual funds", "amount": 545, "progress": 72, "color": "bg-blue-600" },
+  { "name": "Investment",   "amount": 234, "progress": 38, "color": "bg-blue-400" }
+]

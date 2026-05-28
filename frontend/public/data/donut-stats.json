@@ -1,0 +1,5 @@
+[
+  { "name": "Savings",    "value": 725,  "color": "#3B82F6" },
+  { "name": "Expenses",   "value": 2350, "color": "#93C5FD" },
+  { "name": "Investment", "value": 110,  "color": "#DBEAFE" }
+]
