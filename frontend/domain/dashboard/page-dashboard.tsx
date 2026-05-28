@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useStatCards } from "@/hooks/use-stat-cards";
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
@@ -59,11 +60,6 @@ const donutData = [
   { name: "Investment", value: 110,  color: "#DBEAFE" },
 ];
 
-const statCards = [
-  { label: "Business account", value: "$24,098.00", trend: +2.5 },
-  { label: "Tax Reserve",      value: "$2,456.89",  trend: -0.8 },
-  { label: "Savings",          value: "$1,980.00",  trend: +5.2 },
-];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -91,9 +87,13 @@ function PromoBanner() {
 }
 
 function StatCards() {
+  const { data, isPending } = useStatCards();
+
+  if (isPending) return <div className="grid grid-cols-3 gap-4">{[0, 1, 2].map((i) => <div key={i} className="rounded-xl border bg-card p-4 h-20 animate-pulse" />)}</div>;
+
   return (
     <div className="grid grid-cols-3 gap-4">
-      {statCards.map((card) => (
+      {(data ?? []).map((card) => (
         <div key={card.label} className="rounded-xl border bg-card p-4">
           <p className="text-xs text-muted-foreground">{card.label}</p>
           <p className="mt-1 text-lg font-bold tracking-tight">{card.value}</p>
