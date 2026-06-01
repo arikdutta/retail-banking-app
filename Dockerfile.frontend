@@ -1,0 +1,35 @@
+# ------- 1. DEPS STAGE -------
+FROM node:20-alpine AS deps
+WORKDIR /app/frontend
+
+COPY frontend/package.json frontend/pnpm-lock.yaml* ./
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
+
+# ------- 2. BUILDER STAGE -------
+FROM node:20-alpine AS builder
+WORKDIR /app/frontend
+
+COPY --from=deps /app/frontend/node_modules ./node_modules
+COPY frontend/ ./
+
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
+RUN npm install -g pnpm && pnpm run build
+
+# ------- 3. RUNNER STAGE -------
+FROM node:20-alpine AS runner
+WORKDIR /app/frontend
+
+ENV NODE_ENV=production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 appuser
+
+COPY --from=builder --chown=appuser:nodejs /app/frontend/.output ./.output
+COPY --from=builder /app/frontend/node_modules ./node_modules
+COPY --from=builder /app/frontend/package.json ./
+
+USER appuser
+EXPOSE 3000
+CMD ["node", ".output/server/index.mjs"]
