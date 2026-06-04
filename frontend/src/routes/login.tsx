@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { queryKeys } from "@/lib/query-keys";
+import { APP_NAME } from "@/lib/app-config";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -55,7 +56,7 @@ function PhoneMockup() {
               R
             </div>
             <span className="text-[11px] font-bold text-gray-900">
-              Rust Finance.
+              {APP_NAME}.
             </span>
           </div>
           <div className="w-5 h-5 bg-gray-100 rounded-full flex items-center justify-center">
@@ -187,7 +188,7 @@ function LoginPage() {
               R
             </div>
             <div className="leading-tight">
-              <div className="text-sm font-bold text-gray-900">Rust Finance.</div>
+              <div className="text-sm font-bold text-gray-900">{APP_NAME}.</div>
               <div className="text-[11px] text-gray-400">Banking</div>
             </div>
           </div>

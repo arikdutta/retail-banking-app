@@ -1,0 +1,36 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                to_char(t.created_at::date, 'YYYY-MM-DD')                          AS \"date!\",\n                COALESCE(SUM(CASE WHEN t.amount > 0 THEN t.amount  ELSE 0 END), 0) AS \"income!\",\n                COALESCE(SUM(CASE WHEN t.amount < 0 THEN -t.amount ELSE 0 END), 0) AS \"expense!\"\n            FROM transactions t\n            JOIN accounts a ON t.account_unid = a.unid\n            WHERE a.user_unid = $1\n              AND t.created_at::date >= $2\n              AND t.created_at::date <= $3\n            GROUP BY t.created_at::date\n            ORDER BY t.created_at::date ASC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "date!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "income!",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 2,
+        "name": "expense!",
+        "type_info": "Numeric"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Date",
+        "Date"
+      ]
+    },
+    "nullable": [
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "de53b9267e2a6f86a2c3eb658c387c33a8cec623d034769d171caa2e3032badc"
+}

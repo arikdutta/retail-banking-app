@@ -5,12 +5,14 @@ import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
 import { VitePWA } from "vite-plugin-pwa";
 import { fileURLToPath } from "node:url";
+import { APP_NAME, APP_DESCRIPTION } from "./lib/app-config";
 
 const root = fileURLToPath(new URL("./", import.meta.url));
 
 export default defineConfig({
   server: {
     port: 3000,
+    strictPort: true,
   },
   resolve: {
     alias: {
@@ -33,9 +35,9 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
       },
       manifest: {
-        name: "Rust Finance",
-        short_name: "Rust Finance",
-        description: "Rust Finance — your personal banking app.",
+        name: APP_NAME,
+        short_name: APP_NAME,
+        description: APP_DESCRIPTION,
         theme_color: "#4f46e5",
         background_color: "#ffffff",
         display: "standalone",

@@ -19,11 +19,12 @@ struct MeRow {
     role: String,
 }
 
-fn jwt_secret() -> String {
-    std::env::var("JWT_SECRET").expect("JWT_SECRET not set")
+fn jwt_secret() -> Result<String, anyhow::Error> {
+    std::env::var("JWT_SECRET").map_err(|_| anyhow::anyhow!("JWT_SECRET not set"))
 }
 
-fn make_token(user_unid: Uuid) -> Result<String, jsonwebtoken::errors::Error> {
+fn make_token(user_unid: Uuid) -> Result<String, anyhow::Error> {
+    let secret = jwt_secret()?;
     let exp = (chrono::Utc::now() + chrono::Duration::days(30)).timestamp() as usize;
     encode(
         &Header::default(),
@@ -31,14 +32,16 @@ fn make_token(user_unid: Uuid) -> Result<String, jsonwebtoken::errors::Error> {
             sub: user_unid,
             exp,
         },
-        &EncodingKey::from_secret(jwt_secret().as_bytes()),
+        &EncodingKey::from_secret(secret.as_bytes()),
     )
+    .map_err(Into::into)
 }
 
-pub fn verify_token(token: &str) -> Result<Claims, jsonwebtoken::errors::Error> {
+pub fn verify_token(token: &str) -> Result<Claims, anyhow::Error> {
+    let secret = jwt_secret()?;
     let data = decode::<Claims>(
         token,
-        &DecodingKey::from_secret(jwt_secret().as_bytes()),
+        &DecodingKey::from_secret(secret.as_bytes()),
         &Validation::default(),
     )?;
     Ok(data.claims)
@@ -209,53 +212,5 @@ pub async fn dashboard_users(
             )
                 .into_response()
         }
-    }
-}
-
-/// GET /api/dashboard/stats — admin or root only.
-pub async fn dashboard_stats(
-    State(state): State<AppState>,
-    _admin: AdminUser,
-) -> impl IntoResponse {
-    struct UserRoleCount {
-        role: String,
-        count: i64,
-    }
-
-    let users = sqlx::query_as!(
-        UserRoleCount,
-        r#"SELECT role as "role!", COUNT(*)::bigint as "count!"
-           FROM users GROUP BY role"#
-    )
-    .fetch_all(&state.pool)
-    .await;
-
-    let total_users = sqlx::query_scalar!(r#"SELECT COUNT(*)::bigint as "count!" FROM users"#)
-        .fetch_one(&state.pool)
-        .await;
-
-    match (users, total_users) {
-        (Ok(users), Ok(total)) => {
-            let by_role: serde_json::Value = serde_json::to_value(
-                users
-                    .iter()
-                    .map(|r| (r.role.clone(), r.count))
-                    .collect::<std::collections::HashMap<_, _>>(),
-            )
-            .unwrap_or(serde_json::Value::Null);
-
-            (
-                StatusCode::OK,
-                Json(json!({
-                    "users": { "total": total, "by_role": by_role },
-                })),
-            )
-                .into_response()
-        }
-        _ => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({"error": "db error"})),
-        )
-            .into_response(),
     }
 }

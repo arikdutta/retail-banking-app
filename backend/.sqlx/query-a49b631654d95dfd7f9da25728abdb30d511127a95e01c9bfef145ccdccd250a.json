@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH start_balance AS (\n                SELECT COALESCE(\n                    SUM(CASE WHEN le.entry_type = 'CREDIT' THEN le.amount ELSE -le.amount END),\n                    0\n                ) AS bal\n                FROM ledger_entries le\n                JOIN accounts a ON le.account_unid = a.unid\n                WHERE a.user_unid = $1\n                  AND le.created_at::date < $2\n            ),\n            daily_net AS (\n                SELECT\n                    le.created_at::date AS day,\n                    SUM(CASE WHEN le.entry_type = 'CREDIT' THEN le.amount ELSE -le.amount END) AS daily_change\n                FROM ledger_entries le\n                JOIN accounts a ON le.account_unid = a.unid\n                WHERE a.user_unid = $1\n                  AND le.created_at::date >= $2\n                  AND le.created_at::date <= $3\n                GROUP BY le.created_at::date\n            )\n            SELECT\n                to_char(day, 'YYYY-MM-DD')                                       AS \"day!\",\n                (SELECT bal FROM start_balance) + SUM(daily_change) OVER (ORDER BY day) AS \"balance!\"\n            FROM daily_net\n            ORDER BY day\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "day!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "balance!",
+        "type_info": "Numeric"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Date",
+        "Date"
+      ]
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "a49b631654d95dfd7f9da25728abdb30d511127a95e01c9bfef145ccdccd250a"
+}

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT unid, user_unid, account_number, iban, label,\n                   account_type AS \"account_type: _\",\n                   balance, currency, closed_at, created_at, updated_at\n            FROM accounts\n            WHERE unid = $1\n            ",
+  "query": "\n            SELECT a.unid, a.user_unid, a.account_number, a.iban, a.label,\n                   a.account_type AS \"account_type: _\",\n                   COALESCE(ab.balance, 0) AS \"balance!\",\n                   a.currency, a.closed_at, a.created_at, a.updated_at\n            FROM accounts a\n            LEFT JOIN account_balances ab ON a.unid = ab.account_unid\n            WHERE a.unid = $1\n            ",
   "describe": {
     "columns": [
       {
@@ -35,7 +35,7 @@
       },
       {
         "ordinal": 6,
-        "name": "balance",
+        "name": "balance!",
         "type_info": "Numeric"
       },
       {
@@ -71,12 +71,12 @@
       true,
       false,
       false,
-      false,
+      null,
       false,
       true,
       false,
       false
     ]
   },
-  "hash": "28e068013f5fe9b73964c4be09b206c6626714e5a25615ea325f224b8078ebb3"
+  "hash": "e64fce601c9e6e931f72f3b55529111dcb9b0b0791a516617318a6581ca61e3f"
 }
