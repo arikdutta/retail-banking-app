@@ -1,0 +1,105 @@
+name: Fix — Migration checksum/stale row
+
+# Usage:
+#   Delete stale row (file was deleted from repo):
+#     gh workflow run fix-migration.yml -f operation=delete -f version=20260516000009
+#
+#   Fix checksum mismatch (file was modified after being applied):
+#     gh workflow run fix-migration.yml -f operation=fix_checksum -f version=20260516000007
+#
+#   Dry run (show row without changing anything):
+#     gh workflow run fix-migration.yml -f operation=delete -f version=20260516000009 -f dry_run=true
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'delete = remove stale row | fix_checksum = re-insert with current file hash'
+        required: true
+        type: choice
+        options:
+          - delete
+          - fix_checksum
+      version:
+        description: 'Migration version (e.g. 20260516000007)'
+        required: true
+        type: string
+      dry_run:
+        description: 'Dry run — show row without modifying'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+jobs:
+  fix-migration:
+    runs-on: ubuntu-latest
+
+    env:
+      SSH: ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no root@${{ vars.SERVER_IP }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ vars.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Show current row
+        run: |
+          ${{ env.SSH }} "
+            docker exec retail-banking-app-db-1 psql \
+              -U ${{ secrets.POSTGRES_USER }} \
+              -d ${{ secrets.POSTGRES_DATABASE }} \
+              -c \"SELECT version, description, success, installed_on FROM _sqlx_migrations WHERE version = ${{ github.event.inputs.version }};\"
+          "
+
+      - name: Delete stale row
+        if: github.event.inputs.operation == 'delete' && github.event.inputs.dry_run == 'false'
+        run: |
+          ${{ env.SSH }} "
+            docker exec retail-banking-app-db-1 psql \
+              -U ${{ secrets.POSTGRES_USER }} \
+              -d ${{ secrets.POSTGRES_DATABASE }} \
+              -c \"DELETE FROM _sqlx_migrations WHERE version = ${{ github.event.inputs.version }};\"
+          "
+          echo "Deleted version ${{ github.event.inputs.version }}."
+
+      - name: Fix checksum (re-insert with hash of current file)
+        if: github.event.inputs.operation == 'fix_checksum' && github.event.inputs.dry_run == 'false'
+        run: |
+          FILE=$(ls migrations/${{ github.event.inputs.version }}_*.sql 2>/dev/null | head -1)
+          if [ -z "$FILE" ]; then
+            echo "ERROR: no migration file found for version ${{ github.event.inputs.version }}"
+            exit 1
+          fi
+          echo "Using file: $FILE"
+
+          CHECKSUM_HEX=$(openssl dgst -sha384 -binary "$FILE" | xxd -p | tr -d '\n')
+          echo "Checksum: $CHECKSUM_HEX"
+
+          DESCRIPTION=$(basename "$FILE" .sql | sed 's/^[0-9]*_//' | tr '_' ' ')
+
+          ${{ env.SSH }} "
+            docker exec retail-banking-app-db-1 psql \
+              -U ${{ secrets.POSTGRES_USER }} \
+              -d ${{ secrets.POSTGRES_DATABASE }} \
+              -c \"
+                DELETE FROM _sqlx_migrations WHERE version = ${{ github.event.inputs.version }};
+                INSERT INTO _sqlx_migrations (version, description, installed_on, success, checksum, execution_time)
+                VALUES (
+                  ${{ github.event.inputs.version }},
+                  '$DESCRIPTION',
+                  NOW(),
+                  true,
+                  decode('$CHECKSUM_HEX', 'hex'),
+                  0
+                );
+              \"
+          "
+          echo "Re-inserted version ${{ github.event.inputs.version }} with updated checksum."
