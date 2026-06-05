@@ -21,8 +21,8 @@ import { cn } from "@/lib/utils";
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
 const cards = [
-  { id: 1, balance: "$24,098.00", label: "Overpay.", type: "VISA", gradient: "from-blue-600 to-blue-700" },
-  { id: 2, balance: "$33,000.00", label: "Overpay.", type: "VISA", gradient: "from-amber-400 to-amber-500" },
+  { id: 1, balance: "$24,098.00", label: "Rust Finance.", type: "VISA", gradient: "from-blue-600 to-blue-700" },
+  { id: 2, balance: "$33,000.00", label: "Rust Finance.", type: "VISA", gradient: "from-amber-400 to-amber-500" },
 ];
 
 const statsRow = [

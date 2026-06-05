@@ -88,7 +88,7 @@ export function DashboardShell({ user, children }: Props) {
                   </div>
                   <div className="flex flex-col gap-0.5 leading-none">
                     <span className="font-bold text-base tracking-tight">
-                      Overpay<span className="text-blue-600">.</span>
+                      Rust Finance<span className="text-blue-600">.</span>
                     </span>
                     <span className="text-[10px] text-muted-foreground">Banking</span>
                   </div>
