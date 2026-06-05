@@ -20,6 +20,9 @@ export function Nav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { data: me } = useMe();
 
+  // Hide entirely on public pages (login, demo)
+  if (pathname.startsWith("/login") || pathname.startsWith("/demo")) return null;
+
   // Dashboard link only shown to authenticated users
   const links = me ? LINKS : LINKS.filter((l) => l.href !== "/dashboard");
 
