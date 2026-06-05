@@ -229,7 +229,7 @@ function WalletCard() {
         <p className="text-xs font-bold tracking-widest opacity-80 mt-1">VISA</p>
       </div>
       <div className="mt-5 flex items-center justify-between">
-        <p className="text-xs font-semibold opacity-60">Overpay.</p>
+        <p className="text-xs font-semibold opacity-60">Rust Finance.</p>
         <div className="flex items-center">
           <div className="h-6 w-6 rounded-full bg-white/30" />
           <div className="-ml-3 h-6 w-6 rounded-full bg-white/20" />
