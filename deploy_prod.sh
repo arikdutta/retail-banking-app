@@ -97,6 +97,10 @@ if [ "$SKIP_BUILD" = "skip" ]; then
     SKIP_BUILD="true"
 fi
 
+echo "⬆️  Pushing main to origin..."
+git push origin main
+echo "✅ main is up to date on origin"
+
 TAG_NAME="deploy_prod_$(date +'%Y/%m/%d_%Hh%Mm%Ss')"
 git tag "$TAG_NAME"
 git push origin "$TAG_NAME"
