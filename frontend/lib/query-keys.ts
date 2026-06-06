@@ -1,5 +1,6 @@
 export const queryKeys = {
   me: () => ["me"] as const,
+  profile: () => ["profile"] as const,
   dashboardStats: () => ["dashboard-stats"] as const,
   dashboardUsers: () => ["dashboard-users"] as const,
   transactions: {

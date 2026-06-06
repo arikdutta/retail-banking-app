@@ -11,6 +11,7 @@ use super::{
     db::BugReportsDb,
     model::{AddBugReport, BugReportQuery},
 };
+use crate::error::AppError;
 use crate::state::AppState;
 
 /// POST /api/bugreports — public, called by frontend error handlers
@@ -48,11 +49,7 @@ pub async fn create_bug_report(
         Ok(id) => (StatusCode::CREATED, Json(json!({"id": id}))).into_response(),
         Err(e) => {
             tracing::error!("bugreports insert: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }
@@ -75,11 +72,7 @@ pub async fn list_bug_reports(
         }
         Err(e) => {
             tracing::error!("bugreports list: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }
@@ -94,11 +87,7 @@ pub async fn get_bug_report(
         Ok(None) => (StatusCode::NOT_FOUND, Json(json!({"error": "not found"}))).into_response(),
         Err(e) => {
             tracing::error!("bugreports get {unid}: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }
@@ -109,11 +98,7 @@ pub async fn delete_all_bug_reports(State(state): State<AppState>) -> impl IntoR
         Ok(n) => Json(json!({"deleted": n})).into_response(),
         Err(e) => {
             tracing::error!("bugreports delete_all: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }
@@ -133,11 +118,7 @@ pub async fn bug_report_charts(
         Ok(data) => Json(json!(data)).into_response(),
         Err(e) => {
             tracing::error!("bugreports charts: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }

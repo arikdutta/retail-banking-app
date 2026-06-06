@@ -9,6 +9,7 @@ use uuid::Uuid;
 
 use super::db::AccountsDb;
 use crate::domain::auth::middleware::AuthUser;
+use crate::error::AppError;
 use crate::state::AppState;
 
 /// GET /api/accounts
@@ -17,11 +18,7 @@ pub async fn list_accounts(user: AuthUser, State(state): State<AppState>) -> imp
         Ok(rows) => Json(json!(rows)).into_response(),
         Err(e) => {
             tracing::error!("accounts list: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }
@@ -38,11 +35,7 @@ pub async fn get_account(
         Ok(None) => (StatusCode::NOT_FOUND, Json(json!({"error": "not found"}))).into_response(),
         Err(e) => {
             tracing::error!("accounts get {id}: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }

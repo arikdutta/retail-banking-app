@@ -13,13 +13,15 @@ impl AccountsDb {
         sqlx::query_as!(
             Account,
             r#"
-            SELECT unid, user_unid, account_number, iban, label,
-                   account_type AS "account_type: _",
-                   balance, currency, closed_at, created_at, updated_at
-            FROM accounts
-            WHERE user_unid = $1
-              AND closed_at IS NULL
-            ORDER BY created_at ASC
+            SELECT a.unid, a.user_unid, a.account_number, a.iban, a.label,
+                   a.account_type AS "account_type: _",
+                   COALESCE(ab.balance, 0) AS "balance!",
+                   a.currency, a.closed_at, a.created_at, a.updated_at
+            FROM accounts a
+            LEFT JOIN account_balances ab ON a.unid = ab.account_unid
+            WHERE a.user_unid = $1
+              AND a.closed_at IS NULL
+            ORDER BY a.created_at ASC
             "#,
             user_unid,
         )
@@ -31,11 +33,13 @@ impl AccountsDb {
         sqlx::query_as!(
             Account,
             r#"
-            SELECT unid, user_unid, account_number, iban, label,
-                   account_type AS "account_type: _",
-                   balance, currency, closed_at, created_at, updated_at
-            FROM accounts
-            WHERE unid = $1
+            SELECT a.unid, a.user_unid, a.account_number, a.iban, a.label,
+                   a.account_type AS "account_type: _",
+                   COALESCE(ab.balance, 0) AS "balance!",
+                   a.currency, a.closed_at, a.created_at, a.updated_at
+            FROM accounts a
+            LEFT JOIN account_balances ab ON a.unid = ab.account_unid
+            WHERE a.unid = $1
             "#,
             unid,
         )

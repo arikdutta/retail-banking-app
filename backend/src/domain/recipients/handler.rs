@@ -11,6 +11,7 @@ use uuid::Uuid;
 use super::db::RecipientsDb;
 use super::model::CreateRecipientRequest;
 use crate::domain::auth::middleware::AuthUser;
+use crate::error::AppError;
 use crate::state::AppState;
 
 #[derive(Deserialize)]
@@ -47,11 +48,7 @@ pub async fn list_recipients(
         }
         Err(e) => {
             tracing::error!("recipients list: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }
@@ -66,11 +63,7 @@ pub async fn create_recipient(
         Ok(recipient) => (StatusCode::CREATED, Json(json!(recipient))).into_response(),
         Err(e) => {
             tracing::error!("recipients create: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }
@@ -90,11 +83,7 @@ pub async fn delete_recipient(
             .into_response(),
         Err(e) => {
             tracing::error!("recipients delete {id}: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }

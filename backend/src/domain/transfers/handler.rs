@@ -4,6 +4,7 @@ use serde_json::json;
 use super::db::{TransferError, TransfersDb};
 use super::model::CreateTransferRequest;
 use crate::domain::auth::middleware::AuthUser;
+use crate::error::AppError;
 use crate::state::AppState;
 
 /// POST /api/transfers
@@ -44,11 +45,7 @@ pub async fn create_transfer(
             .into_response(),
         Err(TransferError::Db(e)) => {
             tracing::error!("transfer execute: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }
