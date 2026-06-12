@@ -1,15 +1,17 @@
 use axum::{
     Json,
     extract::{Query, State},
-    http::StatusCode,
+    http::{StatusCode, header},
     response::IntoResponse,
 };
+use chrono::NaiveDate;
 use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
 
 use super::db::TransactionsDb;
 use crate::domain::auth::middleware::AuthUser;
+use crate::pdf::generate_statement_pdf;
 use crate::state::AppState;
 
 #[derive(Deserialize)]
@@ -57,6 +59,51 @@ pub async fn recent_activity(
             (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": e.to_string()}))).into_response()
         }
     }
+}
+
+/// GET /api/transactions/pdf?from=YYYY-MM-DD&to=YYYY-MM-DD
+pub async fn get_transactions_pdf(
+    user: AuthUser,
+    State(state): State<AppState>,
+    Query(params): Query<PdfQuery>,
+) -> impl IntoResponse {
+    if params.to < params.from {
+        return (StatusCode::BAD_REQUEST, "to must be >= from").into_response();
+    }
+
+    let email = match sqlx::query_scalar!("SELECT email FROM users WHERE unid = $1", user.unid)
+        .fetch_one(&state.pool)
+        .await
+    {
+        Ok(e) => e,
+        Err(e) => {
+            tracing::error!("pdf email fetch: {e}");
+            return (StatusCode::INTERNAL_SERVER_ERROR, "db error").into_response();
+        }
+    };
+
+    let transactions =
+        match TransactionsDb::list_by_date_range(&state.pool, user.unid, params.from, params.to).await {
+            Ok(t) => t,
+            Err(e) => {
+                tracing::error!("pdf transactions fetch: {e}");
+                return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+            }
+        };
+
+    match generate_statement_pdf(&transactions, &email, params.from, params.to).await {
+        Ok(bytes) => ([(header::CONTENT_TYPE, "application/pdf")], bytes).into_response(),
+        Err(e) => {
+            tracing::error!("pdf generate: {e}");
+            (StatusCode::INTERNAL_SERVER_ERROR, e).into_response()
+        }
+    }
+}
+
+#[derive(Deserialize)]
+pub struct PdfQuery {
+    pub from: NaiveDate,
+    pub to:   NaiveDate,
 }
 
 /// GET /api/dashboard/money-flow
