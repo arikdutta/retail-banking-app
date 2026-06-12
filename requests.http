@@ -16,8 +16,8 @@ POST {{base}}/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "root@example.com",
-  "password": "password123"
+  "email": "user@example.com",
+  "password": "password"
 }
 
 ### Logout
@@ -39,6 +39,12 @@ GET {{base}}/api/dashboard/stats
 
 ### Users list
 GET {{base}}/api/dashboard/users
+
+### Money flow (income vs expenses per day)
+GET {{base}}/api/dashboard/money-flow
+
+### Spending breakdown (donut chart)
+GET {{base}}/api/dashboard/donut-stats
 
 # ─────────────────────────────────────────
 # ROLE ACCESSES (protected)
@@ -89,3 +95,43 @@ GET {{base}}/api/bugreports/charts
 
 ### Delete all bug reports (protected)
 DELETE {{base}}/api/bugreports
+
+# ─────────────────────────────────────────
+# ACCOUNTS (protected)
+# ─────────────────────────────────────────
+
+### List accounts for current user
+GET {{base}}/api/accounts
+
+### Get single account
+# Replace the UUID with one from the seed data or a real account unid
+GET {{base}}/api/accounts/a0b1c2d3-e4f5-6789-abcd-ef0123456789
+
+# ─────────────────────────────────────────
+# TRANSACTIONS (protected)
+# ─────────────────────────────────────────
+
+### List transactions — first page, 20 per page
+GET {{base}}/api/transactions
+
+### List transactions — paginated
+GET {{base}}/api/transactions?page=2&per_page=10
+
+### List transactions — filtered by account
+GET {{base}}/api/transactions?account_unid=a0b1c2d3-e4f5-6789-abcd-ef0123456789
+
+### List transactions — filtered by account, paginated
+GET {{base}}/api/transactions?account_unid=a0b1c2d3-e4f5-6789-abcd-ef0123456789&page=1&per_page=5
+
+### Recent activity feed (last 20 by default)
+GET {{base}}/api/transactions/activity
+
+### Recent activity feed — custom limit
+GET {{base}}/api/transactions/activity?limit=5
+
+# ─────────────────────────────────────────
+# SAVINGS GOALS (protected)
+# ─────────────────────────────────────────
+
+### List savings goals for current user
+GET {{base}}/api/savings
