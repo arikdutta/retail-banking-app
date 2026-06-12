@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AccountRouteRouteImport } from './routes/account/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as DashboardWalletsRouteImport } from './routes/dashboard/wallets'
 import { Route as DashboardUsersRouteImport } from './routes/dashboard/users'
 import { Route as DashboardTransactionsRouteImport } from './routes/dashboard/transactions'
@@ -25,6 +27,8 @@ import { Route as DashboardHelpRouteImport } from './routes/dashboard/help'
 import { Route as DashboardBugreportsRouteImport } from './routes/dashboard/bugreports'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard/analytics'
 import { Route as DashboardAccessDemoRouteImport } from './routes/dashboard/access-demo'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AdminBugreportsRouteImport } from './routes/admin/bugreports'
 import { Route as AccountProfileRouteImport } from './routes/account/profile'
 
 const LoginRoute = LoginRouteImport.update({
@@ -35,6 +39,11 @@ const LoginRoute = LoginRouteImport.update({
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountRouteRoute = AccountRouteRouteImport.update({
@@ -51,6 +60,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRouteRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const DashboardWalletsRoute = DashboardWalletsRouteImport.update({
   id: '/wallets',
@@ -107,6 +121,16 @@ const DashboardAccessDemoRoute = DashboardAccessDemoRouteImport.update({
   path: '/access-demo',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminBugreportsRoute = AdminBugreportsRouteImport.update({
+  id: '/bugreports',
+  path: '/bugreports',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AccountProfileRoute = AccountProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -116,9 +140,12 @@ const AccountProfileRoute = AccountProfileRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRouteRouteWithChildren
+  '/admin': typeof AdminRouteRouteWithChildren
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/account/profile': typeof AccountProfileRoute
+  '/admin/bugreports': typeof AdminBugreportsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/dashboard/access-demo': typeof DashboardAccessDemoRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/bugreports': typeof DashboardBugreportsRoute
@@ -130,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/transactions': typeof DashboardTransactionsRoute
   '/dashboard/users': typeof DashboardUsersRoute
   '/dashboard/wallets': typeof DashboardWalletsRoute
+  '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -137,6 +165,8 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/account/profile': typeof AccountProfileRoute
+  '/admin/bugreports': typeof AdminBugreportsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/dashboard/access-demo': typeof DashboardAccessDemoRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/bugreports': typeof DashboardBugreportsRoute
@@ -148,15 +178,19 @@ export interface FileRoutesByTo {
   '/dashboard/transactions': typeof DashboardTransactionsRoute
   '/dashboard/users': typeof DashboardUsersRoute
   '/dashboard/wallets': typeof DashboardWalletsRoute
+  '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRouteRouteWithChildren
+  '/admin': typeof AdminRouteRouteWithChildren
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/account/profile': typeof AccountProfileRoute
+  '/admin/bugreports': typeof AdminBugreportsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/dashboard/access-demo': typeof DashboardAccessDemoRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/bugreports': typeof DashboardBugreportsRoute
@@ -168,6 +202,7 @@ export interface FileRoutesById {
   '/dashboard/transactions': typeof DashboardTransactionsRoute
   '/dashboard/users': typeof DashboardUsersRoute
   '/dashboard/wallets': typeof DashboardWalletsRoute
+  '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -175,9 +210,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/account'
+    | '/admin'
     | '/dashboard'
     | '/login'
     | '/account/profile'
+    | '/admin/bugreports'
+    | '/admin/users'
     | '/dashboard/access-demo'
     | '/dashboard/analytics'
     | '/dashboard/bugreports'
@@ -189,6 +227,7 @@ export interface FileRouteTypes {
     | '/dashboard/transactions'
     | '/dashboard/users'
     | '/dashboard/wallets'
+    | '/admin/'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -196,6 +235,8 @@ export interface FileRouteTypes {
     | '/account'
     | '/login'
     | '/account/profile'
+    | '/admin/bugreports'
+    | '/admin/users'
     | '/dashboard/access-demo'
     | '/dashboard/analytics'
     | '/dashboard/bugreports'
@@ -207,14 +248,18 @@ export interface FileRouteTypes {
     | '/dashboard/transactions'
     | '/dashboard/users'
     | '/dashboard/wallets'
+    | '/admin'
     | '/dashboard'
   id:
     | '__root__'
     | '/'
     | '/account'
+    | '/admin'
     | '/dashboard'
     | '/login'
     | '/account/profile'
+    | '/admin/bugreports'
+    | '/admin/users'
     | '/dashboard/access-demo'
     | '/dashboard/analytics'
     | '/dashboard/bugreports'
@@ -226,12 +271,14 @@ export interface FileRouteTypes {
     | '/dashboard/transactions'
     | '/dashboard/users'
     | '/dashboard/wallets'
+    | '/admin/'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRouteRoute: typeof AccountRouteRouteWithChildren
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
 }
@@ -250,6 +297,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account': {
@@ -272,6 +326,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/dashboard/wallets': {
       id: '/dashboard/wallets'
@@ -350,6 +411,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAccessDemoRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/bugreports': {
+      id: '/admin/bugreports'
+      path: '/bugreports'
+      fullPath: '/admin/bugreports'
+      preLoaderRoute: typeof AdminBugreportsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/account/profile': {
       id: '/account/profile'
       path: '/profile'
@@ -370,6 +445,22 @@ const AccountRouteRouteChildren: AccountRouteRouteChildren = {
 
 const AccountRouteRouteWithChildren = AccountRouteRoute._addFileChildren(
   AccountRouteRouteChildren,
+)
+
+interface AdminRouteRouteChildren {
+  AdminBugreportsRoute: typeof AdminBugreportsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminBugreportsRoute: AdminBugreportsRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
 )
 
 interface DashboardRouteRouteChildren {
@@ -409,6 +500,7 @@ const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRouteRoute: AccountRouteRouteWithChildren,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
   DashboardRouteRoute: DashboardRouteRouteWithChildren,
   LoginRoute: LoginRoute,
 }
