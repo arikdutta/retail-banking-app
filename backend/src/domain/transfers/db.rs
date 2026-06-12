@@ -158,13 +158,13 @@ impl TransfersDb {
                 .fetch_one(&mut *tx)
                 .await?;
 
-                sqlx::query!(
-                    "INSERT INTO ledger_entries (transaction_unid, account_unid, entry_type, amount) VALUES ($1, $2, 'CREDIT', $3)",
+                sqlx::query_scalar!(
+                    "INSERT INTO ledger_entries (transaction_unid, account_unid, entry_type, amount) VALUES ($1, $2, 'CREDIT', $3) RETURNING unid",
                     transfer_in_unid,
                     dest_id,
                     req.amount,
                 )
-                .execute(&mut *tx)
+                .fetch_one(&mut *tx)
                 .await?;
 
                 (dest.label, dest.iban)
@@ -212,13 +212,13 @@ impl TransfersDb {
         .fetch_one(&mut *tx)
         .await?;
 
-        sqlx::query!(
-            "INSERT INTO ledger_entries (transaction_unid, account_unid, entry_type, amount) VALUES ($1, $2, 'DEBIT', $3)",
+        sqlx::query_scalar!(
+            "INSERT INTO ledger_entries (transaction_unid, account_unid, entry_type, amount) VALUES ($1, $2, 'DEBIT', $3) RETURNING unid",
             out_tx.unid,
             req.from_account_unid,
             req.amount,
         )
-        .execute(&mut *tx)
+        .fetch_one(&mut *tx)
         .await?;
 
         tx.commit().await?;
