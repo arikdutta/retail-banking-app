@@ -35,8 +35,16 @@ pub async fn list_transactions(
     let page     = params.page.unwrap_or(1).max(1);
     let per_page = params.per_page.unwrap_or(20).clamp(1, 100);
 
-    match TransactionsDb::list(&state.pool, user.unid, params.account_unid, page, per_page).await {
-        Ok(rows) => Json(json!({ "data": rows, "page": page, "per_page": per_page })).into_response(),
+    let result = tokio::try_join!(
+        TransactionsDb::list(&state.pool, user.unid, params.account_unid, page, per_page),
+        TransactionsDb::count(&state.pool, user.unid, params.account_unid),
+    );
+
+    match result {
+        Ok((rows, total)) => {
+            let total_pages = ((total as f64) / (per_page as f64)).ceil() as i64;
+            Json(json!({ "data": rows, "page": page, "per_page": per_page, "total": total, "total_pages": total_pages.max(1) })).into_response()
+        }
         Err(e) => {
             tracing::error!("transactions list: {e}");
             (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": e.to_string()}))).into_response()

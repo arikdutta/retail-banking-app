@@ -36,8 +36,7 @@ function PhoneMockup() {
       >
         {/* Status bar */}
         <div
-          className="px-4 pt-2 pb-1 flex justify-between items-center text-white"
-          style={{ background: "#1a1a2e" }}
+          className="px-4 pt-2 pb-1 flex justify-between items-center text-white bg-blue-950"
         >
           <span className="text-[10px] font-medium">9:41</span>
           <div className="w-16 h-4 bg-black rounded-full mx-auto" />
@@ -52,8 +51,7 @@ function PhoneMockup() {
         <div className="bg-white px-3 py-2 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <div
-              className="w-5 h-5 rounded flex items-center justify-center text-white text-[9px] font-bold"
-              style={{ background: "#2563EB" }}
+              className="w-5 h-5 rounded flex items-center justify-center text-white text-[9px] font-bold bg-primary"
             >
               R
             </div>
@@ -69,10 +67,7 @@ function PhoneMockup() {
         {/* Credit card */}
         <div className="bg-white px-3 pt-2 pb-3">
           <div
-            className="rounded-xl p-3.5"
-            style={{
-              background: "linear-gradient(135deg, #1e40af 0%, #2563EB 60%, #60a5fa 100%)",
-            }}
+            className="rounded-xl p-3.5 bg-gradient-to-br from-blue-800 via-blue-600 to-blue-400"
           >
             {/* Chip */}
             <div
@@ -191,8 +186,7 @@ function LoginPage() {
           {/* Logo */}
           <div className="flex items-center gap-2 mb-8">
             <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-              style={{ background: "#2563EB" }}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0 bg-primary"
             >
               R
             </div>
@@ -242,13 +236,7 @@ function LoginPage() {
             <div className="flex justify-end -mt-1">
               <a
                 href="#"
-                className="text-xs font-medium hover:underline"
-                style={{
-                  background: "linear-gradient(135deg, #1d4ed8 0%, #2563EB 60%, #60a5fa 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
+                className="text-xs font-medium text-primary hover:underline"
               >
                 Forgot password?
               </a>
@@ -263,8 +251,7 @@ function LoginPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full text-white rounded-lg font-semibold"
-              style={{ background: "#2563EB" }}
+              className="w-full text-white rounded-lg font-semibold bg-primary hover:bg-primary/90"
               size="lg"
             >
               {loading ? "Logging in…" : "Login"}
@@ -288,8 +275,7 @@ function LoginPage() {
             Don't have an account?{" "}
             <a
               href="#"
-              className="font-bold hover:underline"
-              style={{ color: "#2563EB" }}
+              className="font-bold text-primary hover:underline"
             >
               Sign Up
             </a>
@@ -298,11 +284,7 @@ function LoginPage() {
 
         {/* Right – decorative panel */}
         <div
-          className="w-7/12 relative overflow-hidden"
-          style={{
-            background:
-              "linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 40%, #2563EB 80%, #60a5fa 100%)",
-          }}
+          className="w-7/12 relative overflow-hidden bg-gradient-to-br from-blue-900 via-blue-700 to-blue-400"
         >
           <PhoneMockup />
         </div>

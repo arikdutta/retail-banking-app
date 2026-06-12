@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT COUNT(*)\n            FROM transactions t\n            JOIN accounts a ON t.account_unid = a.unid\n            WHERE a.user_unid = $1\n              AND ($2::uuid IS NULL OR t.account_unid = $2)\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "dba1d39e10b682dea21002ca5b55531b817425466af4fb9f1675cfa1617b0d6d"
+}
