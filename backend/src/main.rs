@@ -1,6 +1,6 @@
 use std::env;
 
-use axum::http::{HeaderValue, Method, header};
+use axum::http::{header, HeaderValue, Method};
 use dotenv::dotenv;
 use sqlx::postgres::PgPoolOptions;
 use tower_http::cors::{AllowCredentials, CorsLayer};
@@ -15,7 +15,10 @@ use auth_backend::state::AppState;
 async fn main() -> anyhow::Result<()> {
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
     if env::var("APP_ENV").as_deref() == Ok("production") {
-        tracing_subscriber::fmt().json().with_env_filter(filter).init();
+        tracing_subscriber::fmt()
+            .json()
+            .with_env_filter(filter)
+            .init();
     } else {
         tracing_subscriber::fmt().with_env_filter(filter).init();
     }
@@ -26,10 +29,15 @@ async fn main() -> anyhow::Result<()> {
 
     dotenv().ok();
 
-    let database_url = env::var("DATABASE_URL")
-        .map_err(|_| anyhow::anyhow!("DATABASE_URL not set"))?;
+    let database_url =
+        env::var("DATABASE_URL").map_err(|_| anyhow::anyhow!("DATABASE_URL not set"))?;
 
     env::var("JWT_SECRET").map_err(|_| anyhow::anyhow!("JWT_SECRET not set"))?;
+    let resend_api_url =
+        env::var("RESEND_API_URL").unwrap_or_else(|_| "https://api.resend.com/emails".to_string());
+    let resend_api_key = env::var("RESEND_API_KEY").ok();
+    let email_from = env::var("EMAIL_FROM")
+        .unwrap_or_else(|_| "Retail Banking <onboarding@resend.dev>".to_string());
 
     let pool = PgPoolOptions::new()
         .max_connections(5)
@@ -43,10 +51,19 @@ async fn main() -> anyhow::Result<()> {
     let cors_origins: Vec<HeaderValue> = env::var("CORS_ORIGINS")
         .unwrap_or_else(|_| "http://localhost:3000".to_string())
         .split(',')
-        .map(|s| s.trim().parse::<HeaderValue>().expect("invalid CORS_ORIGINS entry"))
+        .map(|s| {
+            s.trim()
+                .parse::<HeaderValue>()
+                .expect("invalid CORS_ORIGINS entry")
+        })
         .collect();
 
-    let app = auth_backend::build_app(AppState { pool })
+    let app = auth_backend::build_app(AppState {
+        pool,
+        resend_api_url,
+        resend_api_key,
+        email_from,
+    })
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(|req: &axum::http::Request<_>| {
