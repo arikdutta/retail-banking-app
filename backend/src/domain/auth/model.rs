@@ -3,7 +3,7 @@ use strum::{Display, EnumString};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LoginRequest {
-    pub email:    String,
+    pub email: String,
     pub password: String,
 }
 
