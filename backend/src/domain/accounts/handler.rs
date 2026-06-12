@@ -1,0 +1,43 @@
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+};
+use serde_json::json;
+use uuid::Uuid;
+
+use super::db::AccountsDb;
+use crate::domain::auth::middleware::AuthUser;
+use crate::state::AppState;
+
+/// GET /api/accounts
+pub async fn list_accounts(
+    user: AuthUser,
+    State(state): State<AppState>,
+) -> impl IntoResponse {
+    match AccountsDb::list_for_user(&state.pool, user.unid).await {
+        Ok(rows) => Json(json!(rows)).into_response(),
+        Err(e) => {
+            tracing::error!("accounts list: {e}");
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": e.to_string()}))).into_response()
+        }
+    }
+}
+
+/// GET /api/accounts/:id
+pub async fn get_account(
+    user: AuthUser,
+    State(state): State<AppState>,
+    Path(id): Path<Uuid>,
+) -> impl IntoResponse {
+    match AccountsDb::get_by_unid(&state.pool, id).await {
+        Ok(Some(account)) if account.user_unid == user.unid => Json(json!(account)).into_response(),
+        Ok(Some(_)) => (StatusCode::FORBIDDEN, Json(json!({"error": "forbidden"}))).into_response(),
+        Ok(None) => (StatusCode::NOT_FOUND, Json(json!({"error": "not found"}))).into_response(),
+        Err(e) => {
+            tracing::error!("accounts get {id}: {e}");
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": e.to_string()}))).into_response()
+        }
+    }
+}
