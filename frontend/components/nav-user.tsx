@@ -1,5 +1,5 @@
 import { useNavigate, Link } from "@tanstack/react-router";
-import { Bug, ChevronsUpDown, LogOut, User } from "lucide-react";
+import { ChevronsUpDown, LogOut, Settings2, User } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -90,9 +90,9 @@ export function NavUser({ user }: Props) {
               </DropdownMenuItem>
               {(user.role === "Root" || user.role === "Admin") && (
                 <DropdownMenuItem asChild>
-                  <Link to="/dashboard/bugreports">
-                    <Bug />
-                    Bug Reports
+                  <Link to="/admin">
+                    <Settings2 />
+                    Admin panel
                   </Link>
                 </DropdownMenuItem>
               )}
