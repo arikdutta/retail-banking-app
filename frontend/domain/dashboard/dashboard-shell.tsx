@@ -11,6 +11,7 @@ import {
   ArrowLeftRight,
   Users,
   ChevronRight,
+  Bug,
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
@@ -36,6 +37,7 @@ import {
 } from "@/components/ui/sidebar";
 import { UserMenu } from "@/components/user-menu";
 import type { Role } from "@/lib/roles";
+import { BugReportsPermission } from "@/domain/dashboard/permissions";
 
 const MAIN_NAV = [
   { href: "/dashboard",           label: "Dashboard",  icon: LayoutDashboard, exact: true },
@@ -54,6 +56,10 @@ const BOTTOM_NAV = [
   { href: "/dashboard/settings",  label: "Settings",  icon: Settings },
 ];
 
+const ADMIN_NAV = [
+  { href: "/dashboard/bugreports", label: "Bug Reports", icon: Bug },
+];
+
 type Props = {
   user: { email: string; role: Role };
   children: React.ReactNode;
@@ -68,10 +74,13 @@ export function DashboardShell({ user, children }: Props) {
   const activityActive = ACTIVITY_SUB.some((s) => pathname.startsWith(s.href));
   const [activityOpen, setActivityOpen] = useState(activityActive);
 
+  const canViewAdmin = BugReportsPermission.View.hasPermission(user.role);
+
   const currentLabel =
     MAIN_NAV.find((i) => matchActive(pathname, i.href, i.exact))?.label ??
     ACTIVITY_SUB.find((i) => pathname.startsWith(i.href))?.label ??
     BOTTOM_NAV.find((i) => pathname.startsWith(i.href))?.label ??
+    ADMIN_NAV.find((i) => pathname.startsWith(i.href))?.label ??
     "Dashboard";
 
   return (
@@ -149,6 +158,27 @@ export function DashboardShell({ user, children }: Props) {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+
+          {/* Admin nav */}
+          {canViewAdmin && (
+            <SidebarGroup>
+              <SidebarGroupLabel>Admin</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {ADMIN_NAV.map(({ href, label, icon: Icon }) => (
+                    <SidebarMenuItem key={href}>
+                      <SidebarMenuButton asChild isActive={pathname.startsWith(href)} tooltip={label}>
+                        <Link to={href}>
+                          <Icon />
+                          <span>{label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
 
           {/* Bottom nav */}
           <SidebarGroup className="mt-auto">
