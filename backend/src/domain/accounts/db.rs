@@ -6,7 +6,10 @@ use super::model::Account;
 pub struct AccountsDb;
 
 impl AccountsDb {
-    pub async fn list_for_user(pool: &PgPool, user_unid: Uuid) -> Result<Vec<Account>, sqlx::Error> {
+    pub async fn list_for_user(
+        pool: &PgPool,
+        user_unid: Uuid,
+    ) -> Result<Vec<Account>, sqlx::Error> {
         sqlx::query_as!(
             Account,
             r#"

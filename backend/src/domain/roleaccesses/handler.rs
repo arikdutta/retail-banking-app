@@ -1,4 +1,4 @@
-use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use serde_json::json;
 
 use super::db::RoleAccessesDb;
@@ -6,29 +6,31 @@ use crate::domain::auth::middleware::{AuthUser, RootUser};
 use crate::state::AppState;
 
 /// GET /api/roleaccesses/mine — all authenticated users; returns caller's role grants from DB
-pub async fn get_my_roles(
-    State(state): State<AppState>,
-    auth: AuthUser,
-) -> impl IntoResponse {
+pub async fn get_my_roles(State(state): State<AppState>, auth: AuthUser) -> impl IntoResponse {
     match RoleAccessesDb::get_for_user(&state.pool, auth.unid).await {
         Ok(roles) => Json(json!({ "roles": roles })).into_response(),
         Err(e) => {
             tracing::error!("roleaccesses get_for_user: {e}");
-            (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": "db error"}))).into_response()
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": "db error"})),
+            )
+                .into_response()
         }
     }
 }
 
 /// GET /api/roleaccesses — Root only; returns all role grants with user info
-pub async fn get_all(
-    State(state): State<AppState>,
-    _root: RootUser,
-) -> impl IntoResponse {
+pub async fn get_all(State(state): State<AppState>, _root: RootUser) -> impl IntoResponse {
     match RoleAccessesDb::get_all_with_users(&state.pool).await {
         Ok(grants) => Json(json!({ "grants": grants })).into_response(),
         Err(e) => {
             tracing::error!("roleaccesses get_all: {e}");
-            (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": "db error"}))).into_response()
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": "db error"})),
+            )
+                .into_response()
         }
     }
 }
