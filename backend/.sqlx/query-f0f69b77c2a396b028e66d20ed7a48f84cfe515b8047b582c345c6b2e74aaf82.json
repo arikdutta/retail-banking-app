@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT unid, user_unid, label, account_type, balance, currency, created_at, updated_at\n            FROM accounts\n            WHERE user_unid = $1\n            ORDER BY created_at ASC\n            ",
+  "query": "\n            SELECT unid, user_unid, account_number, iban, label,\n                   account_type AS \"account_type: _\",\n                   balance, currency, closed_at, created_at, updated_at\n            FROM accounts\n            WHERE user_unid = $1\n              AND closed_at IS NULL\n            ORDER BY created_at ASC\n            ",
   "describe": {
     "columns": [
       {
@@ -15,31 +15,46 @@
       },
       {
         "ordinal": 2,
-        "name": "label",
+        "name": "account_number",
         "type_info": "Text"
       },
       {
         "ordinal": 3,
-        "name": "account_type",
+        "name": "iban",
         "type_info": "Text"
       },
       {
         "ordinal": 4,
-        "name": "balance",
-        "type_info": "Numeric"
+        "name": "label",
+        "type_info": "Text"
       },
       {
         "ordinal": 5,
-        "name": "currency",
+        "name": "account_type: _",
         "type_info": "Text"
       },
       {
         "ordinal": 6,
+        "name": "balance",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 7,
+        "name": "currency",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "closed_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
         "name": "created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 7,
+        "ordinal": 10,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
@@ -53,12 +68,15 @@
       false,
       false,
       false,
+      true,
       false,
       false,
       false,
+      false,
+      true,
       false,
       false
     ]
   },
-  "hash": "0de2ffc874cabbf4dd320b5845ef0ec49c209edd74944d72eaf7a3add1da89fe"
+  "hash": "f0f69b77c2a396b028e66d20ed7a48f84cfe515b8047b582c345c6b2e74aaf82"
 }
