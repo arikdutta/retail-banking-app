@@ -27,10 +27,9 @@ function PhoneMockup() {
 
       {/* Main phone */}
       <div
-        className="relative z-10 w-44 rounded-[2rem] shadow-2xl overflow-hidden"
+        className="relative z-10 w-44 rounded-[2rem] shadow-2xl overflow-hidden bg-blue-950"
         style={{
-          background: "#1a1a2e",
-          border: "3px solid #16213e",
+          border: "3px solid oklch(0.15 0.04 265)",
           boxShadow: "0 25px 60px rgba(0,0,0,0.4)",
         }}
       >
@@ -172,10 +171,7 @@ function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4"
-      style={{
-        background: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%)",
-      }}
+      className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200"
     >
       <div
         className="flex w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl"
