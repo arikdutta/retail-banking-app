@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ArrowLeft, Bug, LayoutDashboard, Users } from "lucide-react";
+import { ArrowLeft, Bug, Users } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -16,9 +16,8 @@ import { NavUser } from "@/components/nav-user";
 import type { Role } from "@/lib/roles";
 
 const NAV_ITEMS = [
-  { href: "/admin",            label: "Overview",    icon: LayoutDashboard, exact: true },
-  { href: "/admin/users",      label: "Users",       icon: Users,           exact: true },
-  { href: "/admin/bugreports", label: "Bug Reports", icon: Bug,             exact: true },
+  { href: "/admin/users",      label: "Users",       icon: Users, exact: true },
+  { href: "/admin/bugreports", label: "Bug Reports", icon: Bug,   exact: true },
 ];
 
 function isActive(pathname: string, href: string, exact: boolean) {
@@ -38,7 +37,7 @@ export function AdminSidebar({ user }: Props) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link to="/admin">
+              <Link to="/admin/bugreports">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-destructive text-destructive-foreground text-xs font-bold">
                   A
                 </div>
