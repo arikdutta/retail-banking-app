@@ -8,7 +8,7 @@ use typst::text::{Font, FontBook};
 use typst::utils::LazyHash;
 use typst::Library;
 
-use crate::domain::transactions::model::Transaction;
+use crate::domain::transactions::model::{Transaction, TransactionCategory, TransactionStatus, TransactionType};
 
 static FONTS: OnceLock<(LazyHash<FontBook>, Vec<Font>)> = OnceLock::new();
 
@@ -116,13 +116,14 @@ pub fn build_source(
     let rows: String = transactions
         .iter()
         .map(|t| {
-            let date   = t.created_at.format("%b %d, %Y").to_string();
-            let desc   = esc(&t.description);
-            let cat    = esc(&t.category);
-            let sign   = if t.amount >= rust_decimal::Decimal::ZERO { "+" } else { "" };
-            let amount = format!("{}{}", sign, t.amount);
-            let status = esc(&t.status);
-            format!("  [{}], [{}], [{}], [{}], [{}],\n", date, desc, cat, amount, status)
+            let date        = t.created_at.format("%b %d, %Y").to_string();
+            let desc        = esc(&t.description);
+            let counterparty = esc(t.counterparty_name.as_deref().unwrap_or("—"));
+            let cat         = esc(&t.category.to_string());
+            let sign        = if t.amount >= rust_decimal::Decimal::ZERO { "+" } else { "" };
+            let amount      = format!("{}{}", sign, t.amount);
+            let status      = esc(&t.status.to_string());
+            format!("  [{}], [{}], [{}], [{}], [{}], [{}],\n", date, desc, counterparty, cat, amount, status)
         })
         .collect();
 
@@ -150,12 +151,12 @@ pub fn build_source(
 #v(0.8em)
 
 #table(
-  columns: (6em, 1fr, 5em, 5em, 5em),
+  columns: (6em, 1fr, 8em, 5em, 5em, 5em),
   inset: (x: 7pt, y: 5pt),
   stroke: 0.4pt + rgb("{border}"),
   fill: (col, row) => if row == 0 {{ rgb("{header_bg}") }} else {{ white }},
   table.header(
-    [*Date*], [*Description*], [*Category*], [*Amount*], [*Status*],
+    [*Date*], [*Description*], [*Counterparty*], [*Category*], [*Amount*], [*Status*],
   ),
 {rows})
 
@@ -185,22 +186,33 @@ mod tests {
     use std::str::FromStr;
     use uuid::Uuid;
 
-    use crate::domain::transactions::model::Transaction;
+    use crate::domain::transactions::model::{Transaction, TransactionCategory, TransactionStatus, TransactionType};
 
     fn make_date(y: i32, m: u32, d: u32) -> NaiveDate {
         NaiveDate::from_ymd_opt(y, m, d).unwrap()
     }
 
-    fn make_tx(description: &str, category: &str, amount: &str, status: &str) -> Transaction {
+    fn make_tx(
+        description: &str,
+        tx_type: TransactionType,
+        category: TransactionCategory,
+        amount: &str,
+        status: TransactionStatus,
+        counterparty: Option<&str>,
+    ) -> Transaction {
         Transaction {
-            unid:         Uuid::new_v4(),
-            account_unid: Uuid::new_v4(),
-            description:  description.into(),
-            category:     category.into(),
-            amount:       Decimal::from_str(amount).unwrap(),
-            currency:     "USD".into(),
-            status:       status.into(),
-            created_at:   Utc.with_ymd_and_hms(2024, 3, 15, 10, 0, 0).unwrap(),
+            unid:              Uuid::new_v4(),
+            account_unid:      Uuid::new_v4(),
+            transaction_type:  tx_type,
+            description:       description.into(),
+            category,
+            amount:            Decimal::from_str(amount).unwrap(),
+            currency:          "USD".into(),
+            counterparty_name: counterparty.map(str::to_owned),
+            counterparty_iban: None,
+            reference:         None,
+            status,
+            created_at:        Utc.with_ymd_and_hms(2024, 3, 15, 10, 0, 0).unwrap(),
         }
     }
 
@@ -216,24 +228,36 @@ mod tests {
 
     #[test]
     fn source_contains_transaction_row() {
-        let txs = vec![make_tx("Netflix subscription", "Entertainment", "-14.99", "completed")];
+        let txs = vec![make_tx(
+            "Netflix subscription", TransactionType::Debit,
+            TransactionCategory::Subscriptions, "-14.99",
+            TransactionStatus::Completed, Some("Netflix Inc."),
+        )];
         let source = build_source(&txs, "user@test.com", make_date(2024, 3, 1), make_date(2024, 3, 31));
         assert!(source.contains("Netflix subscription"));
-        assert!(source.contains("Entertainment"));
+        assert!(source.contains("subscriptions"));
         assert!(source.contains("-14.99"));
         assert!(source.contains("completed"));
     }
 
     #[test]
     fn source_prefixes_positive_amount_with_plus() {
-        let txs = vec![make_tx("Salary", "Income", "3200.00", "completed")];
+        let txs = vec![make_tx(
+            "Salary", TransactionType::Credit,
+            TransactionCategory::Salary, "3200.00",
+            TransactionStatus::Completed, Some("Acme Corp"),
+        )];
         let source = build_source(&txs, "u@u.com", make_date(2024, 1, 1), make_date(2024, 1, 31));
         assert!(source.contains("+3200.00"), "positive amounts get '+' prefix");
     }
 
     #[test]
     fn source_escapes_special_chars_in_description() {
-        let txs = vec![make_tx("Acme #1 — $100 deal", "Shopping", "-100.00", "completed")];
+        let txs = vec![make_tx(
+            "Acme #1 — $100 deal", TransactionType::Debit,
+            TransactionCategory::Shopping, "-100.00",
+            TransactionStatus::Completed, None,
+        )];
         let source = build_source(&txs, "u@u.com", make_date(2024, 1, 1), make_date(2024, 1, 31));
         assert!(!source.contains("Acme #1"), "unescaped # must not appear");
         assert!(source.contains("\\#"), "# must be escaped");
@@ -259,10 +283,10 @@ mod tests {
     #[test]
     fn compile_with_transactions_produces_valid_pdf() {
         let txs = vec![
-            make_tx("Netflix",      "Entertainment", "-14.99",  "completed"),
-            make_tx("Salary",       "Income",        "+3200.00","completed"),
-            make_tx("Uber Eats",    "Food",          "-32.50",  "pending"),
-            make_tx("Bank charge",  "Fees",          "-5.00",   "failed"),
+            make_tx("Netflix",     TransactionType::Debit,   TransactionCategory::Subscriptions, "-14.99",   TransactionStatus::Completed, Some("Netflix Inc.")),
+            make_tx("Salary",      TransactionType::Credit,  TransactionCategory::Salary,         "+3200.00", TransactionStatus::Completed, Some("Acme Corp")),
+            make_tx("Uber Eats",   TransactionType::Debit,   TransactionCategory::Dining,         "-32.50",   TransactionStatus::Pending,   None),
+            make_tx("Bank charge", TransactionType::Fee,      TransactionCategory::Fees,           "-5.00",    TransactionStatus::Failed,    None),
         ];
         let source = build_source(&txs, "alice@bank.com", make_date(2024, 3, 1), make_date(2024, 3, 31));
         let bytes = compile_typst(source).expect("typst compile failed");
@@ -273,9 +297,11 @@ mod tests {
     fn compile_with_special_chars_in_fields() {
         let txs = vec![make_tx(
             "L'Atelier & Co. <ref #42> $$$",
-            "Shopping @home",
+            TransactionType::Debit,
+            TransactionCategory::Shopping,
             "-99.99",
-            "completed",
+            TransactionStatus::Completed,
+            Some("L'Atelier & Co."),
         )];
         let source = build_source(&txs, "user+test@example.com", make_date(2024, 1, 1), make_date(2024, 1, 31));
         compile_typst(source).expect("special chars must not break Typst");
@@ -284,7 +310,14 @@ mod tests {
     #[test]
     fn compile_with_many_rows_produces_valid_pdf() {
         let txs: Vec<Transaction> = (1..=30)
-            .map(|i| make_tx(&format!("Transaction {i}"), "General", &format!("-{}.00", i * 10), "completed"))
+            .map(|i| make_tx(
+                &format!("Transaction {i}"),
+                TransactionType::Debit,
+                TransactionCategory::Other,
+                &format!("-{}.00", i * 10),
+                TransactionStatus::Completed,
+                None,
+            ))
             .collect();
         let source = build_source(&txs, "user@bank.com", make_date(2024, 1, 1), make_date(2024, 12, 31));
         let bytes = compile_typst(source).expect("multi-row compile failed");
