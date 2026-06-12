@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT\n                t.category                          AS \"category!\",\n                COALESCE(SUM(-t.amount), 0)         AS \"total!\"\n            FROM transactions t\n            JOIN accounts a ON t.account_unid = a.unid\n            WHERE a.user_unid = $1\n              AND t.amount < 0\n            GROUP BY t.category\n            ORDER BY \"total!\" DESC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "category!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "total!",
+        "type_info": "Numeric"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "84af115ff288cf3dc33cabc5bf7a7468b924c06494515cc981256848a368f5f0"
+}
