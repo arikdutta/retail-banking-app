@@ -1,0 +1,24 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO ledger_entries (transaction_unid, account_unid, entry_type, amount) VALUES ($1, $2, 'CREDIT', $3) RETURNING unid",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "unid",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Numeric"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "1a4b0b8e7e93e21fe717e39e60902991a42c5644f30ee73342dd04946d2cb67b"
+}
