@@ -10,6 +10,9 @@ use axum::{
 };
 
 use domain::accounts::handler::{get_account, list_accounts};
+use domain::invoices::handler::{
+    create_invoice, get_invoice, list_invoices, update_invoice_status,
+};
 use domain::auth::handler::{dashboard_stats, dashboard_users, login, logout, me};
 use domain::auth::middleware::require_auth;
 use domain::bugreports::handler::{
@@ -39,6 +42,9 @@ pub fn build_app(state: AppState) -> Router {
             "/api/transactions/email-statement",
             post(email_statement_pdf),
         )
+        .route("/api/invoices", get(list_invoices).post(create_invoice))
+        .route("/api/invoices/{id}", get(get_invoice))
+        .route("/api/invoices/{id}/status", axum::routing::patch(update_invoice_status))
         .route("/api/savings", get(list_savings_goals))
         .route(
             "/api/bugreports",

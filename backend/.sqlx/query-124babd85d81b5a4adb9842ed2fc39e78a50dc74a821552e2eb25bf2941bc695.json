@@ -1,0 +1,102 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT unid, user_unid, invoice_number,\n                   recipient_name, recipient_email, recipient_iban,\n                   description,\n                   amount, currency,\n                   status AS \"status: _\",\n                   due_date, notes,\n                   created_at, updated_at\n            FROM invoices\n            WHERE user_unid = $1\n            ORDER BY created_at DESC\n            LIMIT $2 OFFSET $3\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "unid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_unid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "invoice_number",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "recipient_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "recipient_email",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "recipient_iban",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "amount",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 8,
+        "name": "currency",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "status: _",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "due_date",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 11,
+        "name": "notes",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 12,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 13,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "124babd85d81b5a4adb9842ed2fc39e78a50dc74a821552e2eb25bf2941bc695"
+}
