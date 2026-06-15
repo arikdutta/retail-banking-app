@@ -11,6 +11,7 @@ use serde_json::json;
 use uuid::Uuid;
 
 use super::db::TransactionsDb;
+use super::emails::build_statement_email_html;
 use crate::domain::auth::middleware::AuthUser;
 use crate::pdf::generate_statement_pdf;
 use crate::state::AppState;
@@ -214,19 +215,6 @@ async fn load_statement_context(
 
     Ok((email, transactions))
 }
-
-fn build_statement_email_html(from: NaiveDate, to: NaiveDate) -> String {
-    format!(
-        "<div style=\"font-family:Arial,sans-serif;line-height:1.5;color:#1f2937\">\
-            <h2 style=\"margin:0 0 12px\">Your transaction statement is ready</h2>\
-            <p style=\"margin:0 0 12px\">Attached is your PDF statement for <strong>{}</strong> to <strong>{}</strong>.</p>\
-            <p style=\"margin:0\">You can also download the same file from the Transactions page.</p>\
-        </div>",
-        from.format("%B %d, %Y"),
-        to.format("%B %d, %Y"),
-    )
-}
-
 /// GET /api/dashboard/money-flow
 pub async fn money_flow(user: AuthUser, State(state): State<AppState>) -> impl IntoResponse {
     match TransactionsDb::money_flow(&state.pool, user.unid).await {
