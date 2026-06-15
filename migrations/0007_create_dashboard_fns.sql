@@ -1,4 +1,4 @@
--- Dashboard aggregate functions — not stored tables, computed on demand.
+-- Deprecated Dashboard aggregate functions — not stored tables, computed on demand.
 
 -- ── get_donut_stats ──────────────────────────────────────────────────────────
 -- Returns spending breakdown bucketed into savings / investments / expenses for
@@ -12,46 +12,47 @@
 -- Income categories (deposit, interest, dividend, freelance) are positive by
 -- convention in the seed data and therefore never reach this query, but they
 -- are excluded explicitly for safety.
-CREATE OR REPLACE FUNCTION get_donut_stats(p_user_unid UUID)
-RETURNS TABLE (
-    category TEXT,
-    label    TEXT,
-    amount   NUMERIC(15,2),
-    currency TEXT
-)
-LANGUAGE sql
-STABLE
-AS $$
-    WITH bucketed AS (
-        SELECT
-            CASE t.category
-                WHEN 'transfer'   THEN 'savings'
-                WHEN 'investment' THEN 'investments'
-                ELSE                   'expenses'
-            END           AS bucket_cat,
-            CASE t.category
-                WHEN 'transfer'   THEN 'Savings'
-                WHEN 'investment' THEN 'Investment'
-                ELSE                   'Expenses'
-            END           AS bucket_label,
-            ABS(t.amount) AS abs_amount,
-            t.currency    AS txn_currency
-        FROM transactions t
-        JOIN accounts a ON a.unid = t.account_unid
-        WHERE a.user_unid  = p_user_unid
-          AND t.amount     < 0
-          AND t.status     = 'completed'
-          AND t.category  NOT IN ('deposit', 'interest', 'dividend', 'freelance')
-    )
-    SELECT
-        bucket_cat,
-        bucket_label,
-        SUM(abs_amount)::NUMERIC(15,2),
-        txn_currency
-    FROM bucketed
-    GROUP BY bucket_cat, bucket_label, txn_currency
-    ORDER BY bucket_cat;
-$$;
+
+-- CREATE OR REPLACE FUNCTION get_donut_stats(p_user_unid UUID)
+-- RETURNS TABLE (
+--     category TEXT,
+--     label    TEXT,
+--     amount   NUMERIC(15,2),
+--     currency TEXT
+-- )
+-- LANGUAGE sql
+-- STABLE
+-- AS $$
+--     WITH bucketed AS (
+--         SELECT
+--             CASE t.category
+--                 WHEN 'transfer'   THEN 'savings'
+--                 WHEN 'investment' THEN 'investments'
+--                 ELSE                   'expenses'
+--             END           AS bucket_cat,
+--             CASE t.category
+--                 WHEN 'transfer'   THEN 'Savings'
+--                 WHEN 'investment' THEN 'Investment'
+--                 ELSE                   'Expenses'
+--             END           AS bucket_label,
+--             ABS(t.amount) AS abs_amount,
+--             t.currency    AS txn_currency
+--         FROM transactions t
+--         JOIN accounts a ON a.unid = t.account_unid
+--         WHERE a.user_unid  = p_user_unid
+--           AND t.amount     < 0
+--           AND t.status     = 'completed'
+--           AND t.category  NOT IN ('deposit', 'interest', 'dividend', 'freelance')
+--     )
+--     SELECT
+--         bucket_cat,
+--         bucket_label,
+--         SUM(abs_amount)::NUMERIC(15,2),
+--         txn_currency
+--     FROM bucketed
+--     GROUP BY bucket_cat, bucket_label, txn_currency
+--     ORDER BY bucket_cat;
+-- $$;
 
 -- ── get_money_flow ───────────────────────────────────────────────────────────
 -- Returns daily income vs expenses for a given user over the last p_days days.
@@ -59,35 +60,35 @@ $$;
 -- income   = sum of positive amounts (deposit, freelance, dividend, interest)
 -- expenses = sum of ABS(negative amounts), excluding transfer and investment
 --            (those are capital flows, not operating income/expense)
-CREATE OR REPLACE FUNCTION get_money_flow(p_user_unid UUID, p_days INT DEFAULT 7)
-RETURNS TABLE (
-    date     DATE,
-    income   NUMERIC(15,2),
-    expenses NUMERIC(15,2),
-    currency TEXT
-)
-LANGUAGE sql
-STABLE
-AS $$
-    WITH daily AS (
-        SELECT
-            t.created_at::DATE                                  AS txn_date,
-            t.currency                                          AS txn_currency,
-            CASE WHEN t.amount > 0 THEN  t.amount  ELSE 0 END  AS credit,
-            CASE WHEN t.amount < 0 THEN -t.amount  ELSE 0 END  AS debit
-        FROM transactions t
-        JOIN accounts a ON a.unid = t.account_unid
-        WHERE a.user_unid  = p_user_unid
-          AND t.status     = 'completed'
-          AND t.created_at >= now() - (p_days || ' days')::INTERVAL
-          AND t.category  NOT IN ('transfer', 'investment')
-    )
-    SELECT
-        txn_date,
-        SUM(credit)::NUMERIC(15,2)  AS income,
-        SUM(debit)::NUMERIC(15,2)   AS expenses,
-        txn_currency
-    FROM daily
-    GROUP BY txn_date, txn_currency
-    ORDER BY txn_date;
-$$;
+-- CREATE OR REPLACE FUNCTION get_money_flow(p_user_unid UUID, p_days INT DEFAULT 7)
+-- RETURNS TABLE (
+--     date     DATE,
+--     income   NUMERIC(15,2),
+--     expenses NUMERIC(15,2),
+--     currency TEXT
+-- )
+-- LANGUAGE sql
+-- STABLE
+-- AS $$
+--     WITH daily AS (
+--         SELECT
+--             t.created_at::DATE                                  AS txn_date,
+--             t.currency                                          AS txn_currency,
+--             CASE WHEN t.amount > 0 THEN  t.amount  ELSE 0 END  AS credit,
+--             CASE WHEN t.amount < 0 THEN -t.amount  ELSE 0 END  AS debit
+--         FROM transactions t
+--         JOIN accounts a ON a.unid = t.account_unid
+--         WHERE a.user_unid  = p_user_unid
+--           AND t.status     = 'completed'
+--           AND t.created_at >= now() - (p_days || ' days')::INTERVAL
+--           AND t.category  NOT IN ('transfer', 'investment')
+--     )
+--     SELECT
+--         txn_date,
+--         SUM(credit)::NUMERIC(15,2)  AS income,
+--         SUM(debit)::NUMERIC(15,2)   AS expenses,
+--         txn_currency
+--     FROM daily
+--     GROUP BY txn_date, txn_currency
+--     ORDER BY txn_date;
+-- $$;
