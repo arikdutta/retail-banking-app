@@ -68,7 +68,15 @@ echo "📦 Checking lockfile..."
 (cd frontend && pnpm install --frozen-lockfile || { echo "❌ frontend/pnpm-lock.yaml is stale — run 'pnpm install' and commit"; exit 1; })
 echo "✅ Lockfile up to date"
 
-echo "🔷 TypeScript / Clippy / Audit (parallel)..."
+# Run nextest before clippy: the test binary is already compiled from the
+# export_bindings step above, so nextest skips relinking and just runs.
+# Running it after clippy would force a relink, hitting a Windows Defender
+# LNK1104 race where the filter driver intercepts the write mid-link.
+echo "🧪 Running backend tests..."
+(cd backend && cargo nextest run --no-fail-fast)
+echo "✅ Backend tests passed"
+
+echo "🔷 TypeScript / Clippy / Audit + frontend tests (parallel)..."
 pids=()
 (cd frontend && npx tsc --noEmit) &
 pids+=($!)
@@ -76,22 +84,10 @@ pids+=($!)
 pids+=($!)
 (cd backend && cargo audit) &
 pids+=($!)
-wait_all "${pids[@]}"
-echo "✅ TypeScript, Clippy, Audit OK"
-
-# Remove clippy-produced test binary so nextest can link it fresh.
-# Windows Defender briefly locks newly created exes; deleting here avoids
-# the LNK1104 "cannot open file" race when nextest tries to overwrite it.
-rm -f backend/target/debug/deps/auth_backend-*.exe backend/target/debug/deps/auth_backend-*.pdb
-
-echo "🧪 Running tests (parallel)..."
-pids=()
 (cd frontend && pnpm test) &
 pids+=($!)
-(cd backend && cargo nextest run --no-fail-fast) &
-pids+=($!)
 wait_all "${pids[@]}"
-echo "✅ All tests passed"
+echo "✅ TypeScript, Clippy, Audit, frontend tests OK"
 
 echo "🏗️  Building frontend..."
 (cd frontend && pnpm run build)
