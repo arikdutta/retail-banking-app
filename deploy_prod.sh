@@ -57,8 +57,19 @@ if ! git diff --quiet; then
 fi
 echo "✅ SQLx offline data is up to date"
 
-echo "📦 Regenerating ts-rs bindings..."
-(cd backend && cargo nextest run export_bindings)
+echo "📦 Checking lockfile..."
+(cd frontend && pnpm install --frozen-lockfile || { echo "❌ frontend/pnpm-lock.yaml is stale — run 'pnpm install' and commit"; exit 1; })
+echo "✅ Lockfile up to date"
+
+# Single nextest run covers export_bindings (ts-rs generation) AND all other
+# tests. Splitting into two runs triggered a Windows Defender LNK1104 race:
+# Defender holds the binary after the first run, causing the second link to
+# fail. One run = one link = no race.
+echo "🧪 Running backend tests (includes ts-rs binding generation)..."
+(cd backend && cargo nextest run --no-fail-fast)
+echo "✅ Backend tests passed"
+
+echo "📦 Checking ts-rs bindings..."
 if ! git diff --quiet frontend/bindings/; then
     echo "📝 Bindings changed — committing and pushing..."
     git add frontend/bindings/
@@ -66,18 +77,6 @@ if ! git diff --quiet frontend/bindings/; then
     git push origin main
 fi
 echo "✅ Bindings up to date"
-
-echo "📦 Checking lockfile..."
-(cd frontend && pnpm install --frozen-lockfile || { echo "❌ frontend/pnpm-lock.yaml is stale — run 'pnpm install' and commit"; exit 1; })
-echo "✅ Lockfile up to date"
-
-# Run nextest before clippy: the test binary is already compiled from the
-# export_bindings step above, so nextest skips relinking and just runs.
-# Running it after clippy would force a relink, hitting a Windows Defender
-# LNK1104 race where the filter driver intercepts the write mid-link.
-echo "🧪 Running backend tests..."
-(cd backend && cargo nextest run --no-fail-fast)
-echo "✅ Backend tests passed"
 
 echo "🔷 TypeScript / Clippy / Audit + frontend tests (parallel)..."
 pids=()
