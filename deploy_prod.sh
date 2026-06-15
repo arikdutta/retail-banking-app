@@ -79,6 +79,11 @@ pids+=($!)
 wait_all "${pids[@]}"
 echo "✅ TypeScript, Clippy, Audit OK"
 
+# Remove clippy-produced test binary so nextest can link it fresh.
+# Windows Defender briefly locks newly created exes; deleting here avoids
+# the LNK1104 "cannot open file" race when nextest tries to overwrite it.
+rm -f backend/target/debug/deps/auth_backend-*.exe backend/target/debug/deps/auth_backend-*.pdb
+
 echo "🧪 Running tests (parallel)..."
 pids=()
 (cd frontend && pnpm test) &
