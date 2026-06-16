@@ -1,4 +1,3 @@
--- Active: 1779365977602@@127.0.0.1@5432@retail_banking_app
 CREATE TABLE IF NOT EXISTS public.bugreports (
     id                BIGSERIAL PRIMARY KEY,
     unid              UUID NOT NULL DEFAULT gen_random_uuid(),
