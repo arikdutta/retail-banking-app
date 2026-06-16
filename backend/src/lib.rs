@@ -3,65 +3,26 @@ pub mod pdf;
 pub mod state;
 
 use axum::http::StatusCode;
-use axum::{
-    middleware,
-    routing::{get, post},
-    Router,
-};
+use axum::{middleware, routing::get, Router};
 
-use domain::accounts::handler::{get_account, list_accounts};
-use domain::invoices::handler::{
-    create_invoice, get_invoice, list_invoices, update_invoice_status,
-};
-use domain::auth::handler::{dashboard_stats, dashboard_users, login, logout, me};
 use domain::auth::middleware::require_auth;
-use domain::bugreports::handler::{
-    bug_report_charts, create_bug_report, delete_all_bug_reports, get_bug_report, list_bug_reports,
-};
-use domain::roleaccesses::handler::{get_all as roleaccesses_get_all, get_my_roles, root_check};
-use domain::savings_goals::handler::list_savings_goals;
-use domain::transactions::handler::{
-    donut_stats, email_statement_pdf, get_transactions_pdf, list_transactions, money_flow,
-    recent_activity,
-};
 use state::AppState;
 
 pub fn build_app(state: AppState) -> Router {
     let protected = Router::new()
-        .route("/api/auth/me", get(me))
-        .route("/api/dashboard/stats", get(dashboard_stats))
-        .route("/api/dashboard/users", get(dashboard_users))
-        .route("/api/dashboard/money-flow", get(money_flow))
-        .route("/api/dashboard/donut-stats", get(donut_stats))
-        .route("/api/accounts", get(list_accounts))
-        .route("/api/accounts/{id}", get(get_account))
-        .route("/api/transactions", get(list_transactions))
-        .route("/api/transactions/activity", get(recent_activity))
-        .route("/api/transactions/pdf", get(get_transactions_pdf))
-        .route(
-            "/api/transactions/email-statement",
-            post(email_statement_pdf),
-        )
-        .route("/api/invoices", get(list_invoices).post(create_invoice))
-        .route("/api/invoices/{id}", get(get_invoice))
-        .route("/api/invoices/{id}/status", axum::routing::patch(update_invoice_status))
-        .route("/api/savings", get(list_savings_goals))
-        .route(
-            "/api/bugreports",
-            get(list_bug_reports).delete(delete_all_bug_reports),
-        )
-        .route("/api/bugreports/{unid}", get(get_bug_report))
-        .route("/api/bugreports/charts", get(bug_report_charts))
-        .route("/api/roleaccesses/mine", get(get_my_roles))
-        .route("/api/roleaccesses/root-check", get(root_check))
-        .route("/api/roleaccesses", get(roleaccesses_get_all))
+        .merge(domain::auth::protected_routes())
+        .merge(domain::accounts::routes())
+        .merge(domain::transactions::routes())
+        .merge(domain::invoices::routes())
+        .merge(domain::savings_goals::routes())
+        .merge(domain::bugreports::protected_routes())
+        .merge(domain::roleaccesses::routes())
         .layer(middleware::from_fn(require_auth));
 
     let public = Router::new()
         .route("/health", get(|| async { StatusCode::OK }))
-        .route("/api/auth/login", post(login))
-        .route("/api/auth/logout", post(logout))
-        .route("/api/bugreports", post(create_bug_report));
+        .merge(domain::auth::public_routes())
+        .merge(domain::bugreports::public_routes());
 
     Router::new()
         .merge(protected)
