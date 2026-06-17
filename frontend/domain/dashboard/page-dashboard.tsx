@@ -331,8 +331,8 @@ function RecentActivity({ onSendAgain }: { onSendAgain: (prefill: SendMoneyPrefi
                       className="text-muted-foreground hover:text-blue-600 transition-colors"
                       onClick={() =>
                         onSendAgain({
-                          recipientName: tx.counterparty_name ?? undefined,
-                          recipientIban: tx.counterparty_iban ?? undefined,
+                          ...(tx.counterparty_name != null ? { recipientName: tx.counterparty_name } : {}),
+                          ...(tx.counterparty_iban != null ? { recipientIban: tx.counterparty_iban } : {}),
                           amount: String(Math.abs(Number(tx.amount))),
                         })
                       }
@@ -452,7 +452,7 @@ export default function PageDashboard() {
     <div className="flex min-h-full gap-6 p-6">
       {sendPrefill !== null && (
         <SendMoneyModal
-          prefill={Object.keys(sendPrefill).length > 0 ? sendPrefill : undefined}
+          {...(Object.keys(sendPrefill).length > 0 ? { prefill: sendPrefill } : {})}
           onClose={() => setSendPrefill(null)}
         />
       )}
