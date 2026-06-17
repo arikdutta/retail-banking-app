@@ -10,6 +10,12 @@ export const queryKeys = {
     list: (page: number) => ["invoices", "list", page] as const,
     detail: (id: string) => ["invoices", "detail", id] as const,
   },
+  recipients: {
+    list: (page: number) => ["recipients", "list", page] as const,
+  },
+  accounts: {
+    list: () => ["accounts", "list"] as const,
+  },
   bugreports: {
     all: () => ["bugreports"] as const,
     list: (page: number, search: string, bugType: string) =>
