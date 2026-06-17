@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   LineChart,
   Line,
@@ -15,21 +16,40 @@ import {
   Download,
   FileText,
   MoreHorizontal,
-  Smartphone,
   ArrowUpRight,
   ArrowDownRight,
+  RotateCcw,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { PromoBanner } from "@/domain/dashboard/promo-banner";
+import { SendMoneyModal, type SendMoneyPrefill } from "@/domain/dashboard/send-money-modal";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useStatCards } from "@/hooks/data/use-stat-cards";
 import { useMoneyFlow } from "@/hooks/data/use-money-flow";
 import { useRecentTransactions } from "@/hooks/data/use-recent-transactions";
-import { useRecentActivity } from "@/hooks/data/use-recent-activity";
 import { useSavings } from "@/hooks/data/use-savings";
 import { useDonutStats } from "@/hooks/data/use-donut-stats";
+import type { Transaction } from "@/bindings/Transaction";
+
+const API_URL = import.meta.env["VITE_API_URL"] ?? "http://localhost:3001";
+
+function useActivityFeed(limit = 10) {
+  return useQuery<Transaction[]>({
+    queryKey: ["transactions", "activity", limit],
+    queryFn: async () => {
+      const r = await fetch(`${API_URL}/api/transactions/activity?limit=${limit}`, {
+        credentials: "include",
+      });
+      if (!r.ok) throw new Error("Failed to fetch activity");
+      return r.json();
+    },
+    staleTime: 1000 * 30,
+  });
+}
 
 const AVATAR_COLORS = ["bg-purple-500", "bg-blue-600", "bg-green-500", "bg-indigo-500", "bg-rose-500"];
 const SAVINGS_COLORS = ["bg-blue-600", "bg-blue-400"];
@@ -40,29 +60,6 @@ function fmtDate(iso: string) {
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-
-function PromoBanner() {
-  return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 p-6 text-white">
-      <div className="relative z-10">
-        <p className="text-sm font-medium opacity-80">Special Offer</p>
-        <h2 className="mt-1 text-2xl font-bold leading-tight">Unlimited Cashback</h2>
-        <p className="mt-1 text-sm opacity-70">
-          Instant 2% back on all your spendings on your account
-        </p>
-        <Button size="sm" className="mt-4 bg-white text-blue-600 hover:bg-blue-50 font-semibold">
-          Upgrade Now →
-        </Button>
-      </div>
-      <div className="pointer-events-none absolute -right-4 top-1/2 -translate-y-1/2 opacity-10">
-        <div className="h-40 w-40 rounded-full border-[16px] border-white" />
-      </div>
-      <div className="pointer-events-none absolute right-12 top-4 opacity-10">
-        <Smartphone className="h-20 w-20" />
-      </div>
-    </div>
-  );
-}
 
 function StatCards() {
   const { data, isPending } = useStatCards();
@@ -245,22 +242,27 @@ function WalletCard() {
 
 const ACTION_CLS = "flex flex-col items-center gap-1.5 rounded-xl border bg-card p-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
 
-function WalletActions() {
-  const plainActions = [
-    { label: "Send",    icon: Send },
-    { label: "Receive", icon: Download },
-    { label: "More",    icon: MoreHorizontal },
-  ];
+function WalletActions({ onSend }: { onSend: () => void }) {
   return (
     <div className="grid grid-cols-4 gap-2">
-      {plainActions.map(({ label, icon: Icon }) => (
-        <button key={label} className={ACTION_CLS}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/30">
-            <Icon className="h-4 w-4" />
-          </div>
-          {label}
-        </button>
-      ))}
+      <button className={ACTION_CLS} onClick={onSend}>
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/30">
+          <Send className="h-4 w-4" />
+        </div>
+        Send
+      </button>
+      <button className={ACTION_CLS}>
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/30">
+          <Download className="h-4 w-4" />
+        </div>
+        Receive
+      </button>
+      <button className={ACTION_CLS}>
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/30">
+          <MoreHorizontal className="h-4 w-4" />
+        </div>
+        More
+      </button>
       <Link to="/dashboard/invoices" search={{ page: 1 }} className={ACTION_CLS}>
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/30">
           <FileText className="h-4 w-4" />
@@ -271,27 +273,19 @@ function WalletActions() {
   );
 }
 
-function QuickTransfer() {
+function QuickTransfer({ onSend }: { onSend: () => void }) {
   return (
     <div className="rounded-xl border bg-card p-5">
       <h3 className="mb-3 font-semibold text-sm">Quick Transfer</h3>
-      <div className="mb-3 flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">Debit</span>
-        <span className="font-semibold">$10,431 ↓</span>
-      </div>
-      <div className="rounded-lg border bg-muted/40 px-3 py-2 mb-3">
-        <p className="text-xs text-muted-foreground mb-0.5">Enter amount</p>
-        <p className="text-xl font-bold">$1,24</p>
-      </div>
-      <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold">
+      <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold" onClick={onSend}>
         Send Money
       </Button>
     </div>
   );
 }
 
-function RecentActivity() {
-  const { data, isPending } = useRecentActivity();
+function RecentActivity({ onSendAgain }: { onSendAgain: (prefill: SendMoneyPrefill) => void }) {
+  const { data, isPending } = useActivityFeed(8);
 
   return (
     <div className="rounded-xl border bg-card p-5">
@@ -314,21 +308,42 @@ function RecentActivity() {
         </div>
       ) : (
         <div className="space-y-3">
-          {(data ?? []).map((item, i) => (
-            <div key={item.id} className="flex items-center gap-3">
-              <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white", AVATAR_COLORS[i % AVATAR_COLORS.length])}>
-                {item.merchant_name.charAt(0).toUpperCase()}
+          {(data ?? []).map((tx, i) => {
+            const label = tx.counterparty_name ?? tx.description;
+            const isOut = tx.transaction_type === "transfer_out";
+            return (
+              <div key={tx.unid} className="flex items-center gap-3">
+                <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white", AVATAR_COLORS[i % AVATAR_COLORS.length])}>
+                  {label.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium leading-tight truncate">{label}</p>
+                  <p className="text-[10px] text-muted-foreground">{fmtDate(tx.created_at)}</p>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <p className={cn("text-sm font-semibold", tx.amount > 0 ? "text-emerald-500" : "")}>
+                    {tx.amount > 0 ? "+" : ""}
+                    {Number(tx.amount).toLocaleString("en-US", { style: "currency", currency: tx.currency })}
+                  </p>
+                  {isOut && (
+                    <button
+                      title="Send Again"
+                      className="text-muted-foreground hover:text-blue-600 transition-colors"
+                      onClick={() =>
+                        onSendAgain({
+                          recipientName: tx.counterparty_name ?? undefined,
+                          recipientIban: tx.counterparty_iban ?? undefined,
+                          amount: String(Math.abs(Number(tx.amount))),
+                        })
+                      }
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium leading-tight">{item.merchant_name}</p>
-                <p className="text-[10px] text-muted-foreground">{fmtDate(item.timestamp)}</p>
-              </div>
-              <p className={cn("text-sm font-semibold shrink-0", item.amount > 0 ? "text-emerald-500" : "")}>
-                {item.amount > 0 ? "+" : ""}
-                {item.amount.toLocaleString("en-US", { style: "currency", currency: item.currency })}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -427,8 +442,21 @@ function StatisticsDonut() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PageDashboard() {
+  const [sendPrefill, setSendPrefill] = useState<SendMoneyPrefill | null>(null);
+
+  function openSend(prefill?: SendMoneyPrefill) {
+    setSendPrefill(prefill ?? {});
+  }
+
   return (
     <div className="flex min-h-full gap-6 p-6">
+      {sendPrefill !== null && (
+        <SendMoneyModal
+          prefill={Object.keys(sendPrefill).length > 0 ? sendPrefill : undefined}
+          onClose={() => setSendPrefill(null)}
+        />
+      )}
+
       {/* Left column */}
       <div className="flex flex-1 flex-col gap-5 min-w-0">
         <PromoBanner />
@@ -444,9 +472,9 @@ export default function PageDashboard() {
       {/* Right column */}
       <div className="flex w-72 shrink-0 flex-col gap-4">
         <WalletCard />
-        <WalletActions />
-        <QuickTransfer />
-        <RecentActivity />
+        <WalletActions onSend={() => openSend()} />
+        <QuickTransfer onSend={() => openSend()} />
+        <RecentActivity onSendAgain={(prefill) => openSend(prefill)} />
       </div>
     </div>
   );
