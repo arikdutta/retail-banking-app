@@ -17,8 +17,6 @@ use crate::state::AppState;
 #[derive(Debug)]
 struct InvoiceAccount {
     user_unid: Uuid,
-    label: String,
-    iban: Option<String>,
     balance: Decimal,
     currency: String,
 }
@@ -164,7 +162,7 @@ pub async fn pay_invoice(
     // Lock + verify source account.
     let src = match sqlx::query_as!(
         InvoiceAccount,
-        "SELECT user_unid, label, iban, balance, currency FROM accounts WHERE unid = $1 AND closed_at IS NULL FOR UPDATE",
+        "SELECT user_unid, balance, currency FROM accounts WHERE unid = $1 AND closed_at IS NULL FOR UPDATE",
         body.from_account_unid,
     )
     .fetch_optional(&mut *db_tx)

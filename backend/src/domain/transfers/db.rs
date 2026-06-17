@@ -37,7 +37,6 @@ impl From<sqlx::Error> for TransferError {
 
 #[derive(Debug)]
 struct AccountRow {
-    unid: Uuid,
     user_unid: Uuid,
     label: String,
     iban: Option<String>,
@@ -73,7 +72,7 @@ impl TransfersDb {
         let src = sqlx::query_as!(
             AccountRow,
             r#"
-            SELECT unid, user_unid, label, iban, balance, currency
+            SELECT user_unid, label, iban, balance, currency
             FROM accounts
             WHERE unid = $1 AND closed_at IS NULL
             FOR UPDATE
@@ -110,7 +109,7 @@ impl TransfersDb {
                 let dest = sqlx::query_as!(
                     AccountRow,
                     r#"
-                    SELECT unid, user_unid, label, iban, balance, currency
+                    SELECT user_unid, label, iban, balance, currency
                     FROM accounts
                     WHERE unid = $1 AND closed_at IS NULL
                     FOR UPDATE
