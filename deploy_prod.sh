@@ -49,9 +49,9 @@ echo "✅ On main, working tree is clean"
 
 echo "🗄️  Running cargo sqlx prepare..."
 (cd backend && cargo sqlx prepare)
-if ! git diff --quiet; then
+git add backend/.sqlx/
+if ! git diff --cached --quiet -- backend/.sqlx/; then
     echo "📝 .sqlx files changed — committing and pushing..."
-    git add backend/.sqlx/
     git commit -m "chore: update .sqlx query cache"
     git push origin main
 fi

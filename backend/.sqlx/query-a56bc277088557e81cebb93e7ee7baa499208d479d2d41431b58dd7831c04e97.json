@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO transactions (\n                account_unid, transaction_type, description, category,\n                amount, currency, counterparty_name, counterparty_iban, reference, status\n            )\n            VALUES ($1, 'transfer_out', $2, 'transfer', $3, $4, $5, $6, $7, 'completed')\n            RETURNING unid\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "unid",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Numeric",
+        "Text",
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "a56bc277088557e81cebb93e7ee7baa499208d479d2d41431b58dd7831c04e97"
+}
