@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
+import { HttpError } from "@/lib/http-error";
 
 export type DashboardStats = {
   tx_count: number;
@@ -16,7 +17,7 @@ export function useDashboardStats(days = 30) {
       const r = await fetch(`${API_URL}/api/dashboard/stats?days=${days}`, {
         credentials: "include",
       });
-      if (!r.ok) throw new Error("Failed to fetch dashboard stats");
+      if (!r.ok) throw new HttpError(r.status, "Failed to fetch dashboard stats");
       return r.json();
     },
   });

@@ -1,4 +1,5 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { HttpError } from "@/lib/http-error";
 
 type BalanceHistoryEntry = {
   day: string;
@@ -24,7 +25,7 @@ export function useBalanceHistory(from?: Date, to?: Date) {
       const r = await fetch(`${API_URL}/api/dashboard/balance-history?${params}`, {
         credentials: "include",
       });
-      if (!r.ok) throw new Error("Failed to fetch balance history");
+      if (!r.ok) throw new HttpError(r.status, "Failed to fetch balance history");
       return r.json();
     },
     placeholderData: keepPreviousData,

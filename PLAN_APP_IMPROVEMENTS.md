@@ -864,13 +864,13 @@ Cargo.toml                                             — Phase 6, 7
 [ ] Phase 5.5  — Idempotency keys
 [ ] Phase 5.6  — Soft-delete consistency
 [ ] Phase 5.7  — Amount precision migration
-[ ] Phase 6    — Backend input validation
-[ ] Phase 7.1-7.3 — Structured logging (tracing setup)
-[ ] Phase 7.4  — Add tracing::warn to all 404/403 handler branches
-[ ] Phase 7.5  — Fix silent .catch(() => {}) in error-reporter.ts
-[ ] Phase 7.6  — Add report() to all component onError callbacks
-[ ] Phase 7.7  — Backend self-reporting to bugreports table
-[ ] Phase 7.8  — Expand BugType (NotFound, AuthError, ApiError) + update query-client.ts
+[ ] Phase 6    — Backend input validation✅
+[ ] Phase 7.1-7.3 — Structured logging (tracing setup)✅
+[ ] Phase 7.4  — Add tracing::warn to all 404/403 handler branches✅
+[ ] Phase 7.5  — Fix silent .catch(() => {}) in error-reporter.ts✅
+[ ] Phase 7.6  — Add report() to all component onError callbacks✅
+[ ] Phase 7.7  — Backend self-reporting to bugreports table✅
+[ ] Phase 7.8  — Expand BugType (NotFound, AuthError, ApiError) + update query-client.ts✅
 [ ] Phase 8.1  — Auth tests (logout, admin-only rejection)
 [ ] Phase 8.2  — Accounts tests (404 nonexistent, isolation)
 [ ] Phase 8.3  — Transactions tests (filter, pagination, PDF, isolation)

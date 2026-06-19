@@ -49,7 +49,7 @@ export function report({
       user_login: currentUserLogin ?? null,
       application: "invoiceapp",
     }),
-  }).catch(() => {});
+  }).catch((e) => console.error("[error-reporter] failed:", e));
 }
 
 export function initErrorReporter() {

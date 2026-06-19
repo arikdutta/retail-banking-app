@@ -8,25 +8,14 @@ use tower_http::request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetReques
 use tower_http::trace::TraceLayer;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 
 use auth_backend::state::AppState;
+use auth_backend::tracing_bugreport_layer::BugReportLayer;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
-    if env::var("APP_ENV").as_deref() == Ok("production") {
-        tracing_subscriber::fmt()
-            .json()
-            .with_env_filter(filter)
-            .init();
-    } else {
-        tracing_subscriber::fmt().with_env_filter(filter).init();
-    }
-
-    std::panic::set_hook(Box::new(|info| {
-        tracing::error!(panic = %info, "process panicked");
-    }));
-
     dotenv().ok();
 
     let database_url =
@@ -43,6 +32,27 @@ async fn main() -> anyhow::Result<()> {
         .max_connections(5)
         .connect(&database_url)
         .await?;
+
+    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
+    if env::var("APP_ENV").as_deref() == Ok("production") {
+        let fmt_layer = tracing_subscriber::fmt::layer().json();
+        tracing_subscriber::registry()
+            .with(filter)
+            .with(fmt_layer)
+            .with(BugReportLayer { pool: pool.clone() })
+            .init();
+    } else {
+        let fmt_layer = tracing_subscriber::fmt::layer();
+        tracing_subscriber::registry()
+            .with(filter)
+            .with(fmt_layer)
+            .with(BugReportLayer { pool: pool.clone() })
+            .init();
+    }
+
+    std::panic::set_hook(Box::new(|info| {
+        tracing::error!(panic = %info, "process panicked");
+    }));
 
     info!("Running migrations...");
     sqlx::migrate!("../migrations").run(&pool).await?;
