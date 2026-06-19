@@ -149,6 +149,7 @@ jobs:
           POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DATABASE=${{ secrets.POSTGRES_DATABASE }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
+          RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
           CORS_ORIGINS=${{ vars.CORS_ORIGINS }}
           VITE_API_URL=${{ vars.VITE_API_URL }}
           IMAGE_TAG=\$IMAGE_TAG
