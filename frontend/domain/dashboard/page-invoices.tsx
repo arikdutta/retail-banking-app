@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useId } from "react";
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { report } from "@/lib/error-reporter";
+import { BUG_TYPE } from "@/lib/bug-type";
 import {
   Search,
   X,
@@ -204,7 +206,10 @@ function DetailPanel({
       { id: invoice.unid, status: nextStatus },
       {
         onSuccess: () => toast.success(`Invoice marked as ${nextStatus}`),
-        onError:   (e) => toast.error(e.message),
+        onError: (e) => {
+          toast.error(e.message);
+          report({ bugType: BUG_TYPE.Server, message: e.message, ...(e.stack ? { stackTrace: e.stack } : {}) });
+        },
       },
     );
   }
@@ -221,7 +226,10 @@ function DetailPanel({
           toast.success("Invoice paid.");
           setShowPayForm(false);
         },
-        onError: (e) => toast.error(e.message),
+        onError: (e) => {
+          toast.error(e.message);
+          report({ bugType: BUG_TYPE.Server, message: e.message, ...(e.stack ? { stackTrace: e.stack } : {}) });
+        },
       },
     );
   }
@@ -405,6 +413,7 @@ const EMPTY_FORM: FormState = {
 };
 
 function CreateInvoiceModal({ onClose }: { onClose: () => void }) {
+  const uid = useId();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const { mutate, isPending } = useCreateInvoice();
 
@@ -436,7 +445,10 @@ function CreateInvoiceModal({ onClose }: { onClose: () => void }) {
           toast.success("Invoice created");
           onClose();
         },
-        onError: (err) => toast.error(err.message),
+        onError: (err) => {
+          toast.error(err.message);
+          report({ bugType: BUG_TYPE.Server, message: err.message, ...(err.stack ? { stackTrace: err.stack } : {}) });
+        },
       },
     );
   }
@@ -463,8 +475,9 @@ function CreateInvoiceModal({ onClose }: { onClose: () => void }) {
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
-              <label className={labelCls}>Recipient name *</label>
+              <label htmlFor={`${uid}-recipient-name`} className={labelCls}>Recipient name *</label>
               <input
+                id={`${uid}-recipient-name`}
                 required
                 className={inputCls}
                 placeholder="Jane Doe"
@@ -474,8 +487,9 @@ function CreateInvoiceModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <div>
-              <label className={labelCls}>Email</label>
+              <label htmlFor={`${uid}-email`} className={labelCls}>Email</label>
               <input
+                id={`${uid}-email`}
                 type="email"
                 className={inputCls}
                 placeholder="jane@example.com"
@@ -485,8 +499,9 @@ function CreateInvoiceModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <div>
-              <label className={labelCls}>IBAN</label>
+              <label htmlFor={`${uid}-iban`} className={labelCls}>IBAN</label>
               <input
+                id={`${uid}-iban`}
                 className={inputCls}
                 placeholder="GB29 NWBK …"
                 value={form.recipient_iban}
@@ -495,8 +510,9 @@ function CreateInvoiceModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <div>
-              <label className={labelCls}>Amount *</label>
+              <label htmlFor={`${uid}-amount`} className={labelCls}>Amount *</label>
               <input
+                id={`${uid}-amount`}
                 required
                 type="number"
                 min="0.01"
@@ -509,8 +525,9 @@ function CreateInvoiceModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <div>
-              <label className={labelCls}>Currency</label>
+              <label htmlFor={`${uid}-currency`} className={labelCls}>Currency</label>
               <select
+                id={`${uid}-currency`}
                 className={inputCls}
                 value={form.currency}
                 onChange={(e) => set("currency", e.target.value)}
@@ -522,8 +539,9 @@ function CreateInvoiceModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="col-span-2">
-              <label className={labelCls}>Description</label>
+              <label htmlFor={`${uid}-description`} className={labelCls}>Description</label>
               <input
+                id={`${uid}-description`}
                 className={inputCls}
                 placeholder="Web design services"
                 value={form.description}
@@ -532,8 +550,9 @@ function CreateInvoiceModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="col-span-2">
-              <label className={labelCls}>Due date</label>
+              <label htmlFor={`${uid}-due-date`} className={labelCls}>Due date</label>
               <input
+                id={`${uid}-due-date`}
                 type="date"
                 className={inputCls}
                 value={form.due_date}
@@ -542,8 +561,9 @@ function CreateInvoiceModal({ onClose }: { onClose: () => void }) {
             </div>
 
             <div className="col-span-2">
-              <label className={labelCls}>Notes</label>
+              <label htmlFor={`${uid}-notes`} className={labelCls}>Notes</label>
               <textarea
+                id={`${uid}-notes`}
                 rows={2}
                 className={cn(inputCls, "resize-none")}
                 placeholder="Payment terms, bank details…"

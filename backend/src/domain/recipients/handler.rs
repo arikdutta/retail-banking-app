@@ -7,6 +7,7 @@ use axum::{
 use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
+use validator::Validate;
 
 use super::db::RecipientsDb;
 use super::model::CreateRecipientRequest;
@@ -21,6 +22,7 @@ pub struct RecipientListQuery {
 }
 
 /// GET /api/recipients
+#[tracing::instrument(skip(user, state, params), fields(user_id = %user.unid))]
 pub async fn list_recipients(
     user: AuthUser,
     State(state): State<AppState>,
@@ -54,11 +56,20 @@ pub async fn list_recipients(
 }
 
 /// POST /api/recipients
+#[tracing::instrument(skip(user, state), fields(user_id = %user.unid))]
 pub async fn create_recipient(
     user: AuthUser,
     State(state): State<AppState>,
     Json(body): Json<CreateRecipientRequest>,
 ) -> impl IntoResponse {
+    if let Err(e) = body.validate() {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(json!({"error": e.to_string()})),
+        )
+            .into_response();
+    }
+
     match RecipientsDb::create(&state.pool, user.unid, body).await {
         Ok(recipient) => (StatusCode::CREATED, Json(json!(recipient))).into_response(),
         Err(e) => {
@@ -69,6 +80,7 @@ pub async fn create_recipient(
 }
 
 /// DELETE /api/recipients/:id
+#[tracing::instrument(skip(user, state), fields(user_id = %user.unid))]
 pub async fn delete_recipient(
     user: AuthUser,
     State(state): State<AppState>,
@@ -76,11 +88,10 @@ pub async fn delete_recipient(
 ) -> impl IntoResponse {
     match RecipientsDb::delete(&state.pool, id, user.unid).await {
         Ok(Some(_)) => StatusCode::NO_CONTENT.into_response(),
-        Ok(None) => (
-            StatusCode::NOT_FOUND,
-            Json(json!({"error": "recipient not found"})),
-        )
-            .into_response(),
+        Ok(None) => {
+            tracing::warn!(recipient_id = %id, "recipient not found for deletion");
+            (StatusCode::NOT_FOUND, Json(json!({"error": "recipient not found"}))).into_response()
+        }
         Err(e) => {
             tracing::error!("recipients delete {id}: {e}");
             AppError::Internal.into_response()

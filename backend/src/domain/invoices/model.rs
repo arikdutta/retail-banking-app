@@ -4,6 +4,17 @@ use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
 use ts_rs::TS;
 use uuid::Uuid;
+use validator::{Validate, ValidationError};
+
+fn validate_amount(value: &Decimal) -> Result<(), ValidationError> {
+    let min = Decimal::new(1, 2);
+    let max = Decimal::new(1_000_000, 0);
+    if *value >= min && *value <= max {
+        Ok(())
+    } else {
+        Err(ValidationError::new("amount_out_of_range"))
+    }
+}
 
 #[derive(
     Debug, Clone, PartialEq, Eq, Serialize, Deserialize, sqlx::Type, Display, EnumString, TS,
@@ -45,16 +56,23 @@ pub struct PayInvoiceRequest {
     pub from_account_unid: Uuid,
 }
 
-#[derive(Debug, Deserialize, TS)]
+#[derive(Debug, Deserialize, Validate, TS)]
 #[ts(export, export_to = "../../frontend/bindings/")]
 pub struct CreateInvoiceRequest {
+    #[validate(length(min = 1, max = 200))]
     pub recipient_name: String,
+    #[validate(email)]
     pub recipient_email: Option<String>,
+    #[validate(length(min = 15, max = 34))]
     pub recipient_iban: Option<String>,
+    #[validate(length(max = 500))]
     pub description: Option<String>,
     #[ts(type = "number")]
+    #[validate(custom(function = "validate_amount"))]
     pub amount: Decimal,
+    #[validate(length(min = 3, max = 3))]
     pub currency: String,
     pub due_date: Option<DateTime<Utc>>,
+    #[validate(length(max = 1000))]
     pub notes: Option<String>,
 }

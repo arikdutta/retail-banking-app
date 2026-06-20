@@ -64,6 +64,9 @@ const BUG_TYPE_VARIANT: Record<
   PromiseRejection: "secondary",
   BrowserWarning: "muted",
   NetworkError: "secondary",
+  NotFound: "muted",
+  AuthError: "destructive",
+  ApiError: "secondary",
   Payment: "secondary",
 };
 

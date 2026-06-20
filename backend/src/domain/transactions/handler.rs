@@ -23,6 +23,7 @@ pub struct StatsQuery {
 }
 
 /// GET /api/dashboard/stats?days=30
+#[tracing::instrument(skip(user, state, params), fields(user_id = %user.unid))]
 pub async fn dashboard_stats(
     user: AuthUser,
     State(state): State<AppState>,
@@ -51,6 +52,7 @@ pub struct ActivityQuery {
 }
 
 /// GET /api/transactions
+#[tracing::instrument(skip(user, state, params), fields(user_id = %user.unid))]
 pub async fn list_transactions(
     user: AuthUser,
     State(state): State<AppState>,
@@ -77,6 +79,7 @@ pub async fn list_transactions(
 }
 
 /// GET /api/transactions/activity
+#[tracing::instrument(skip(user, state, params), fields(user_id = %user.unid))]
 pub async fn recent_activity(
     user: AuthUser,
     State(state): State<AppState>,
@@ -94,6 +97,7 @@ pub async fn recent_activity(
 }
 
 /// GET /api/transactions/pdf?from=YYYY-MM-DD&to=YYYY-MM-DD
+#[tracing::instrument(skip(user, state, params), fields(user_id = %user.unid))]
 pub async fn get_transactions_pdf(
     user: AuthUser,
     State(state): State<AppState>,
@@ -120,6 +124,7 @@ pub struct PdfQuery {
 }
 
 /// POST /api/transactions/email-statement?from=YYYY-MM-DD&to=YYYY-MM-DD
+#[tracing::instrument(skip(user, state, params), fields(user_id = %user.unid))]
 pub async fn email_statement_pdf(
     user: AuthUser,
     State(state): State<AppState>,
@@ -240,6 +245,7 @@ pub struct MoneyFlowQuery {
 }
 
 /// GET /api/dashboard/money-flow?from=YYYY-MM-DD&to=YYYY-MM-DD
+#[tracing::instrument(skip(user, state, params), fields(user_id = %user.unid))]
 pub async fn money_flow(
     user: AuthUser,
     State(state): State<AppState>,
@@ -257,6 +263,7 @@ pub async fn money_flow(
 }
 
 /// GET /api/dashboard/donut-stats
+#[tracing::instrument(skip(user, state), fields(user_id = %user.unid))]
 pub async fn donut_stats(user: AuthUser, State(state): State<AppState>) -> impl IntoResponse {
     match TransactionsDb::donut_stats(&state.pool, user.unid).await {
         Ok(rows) => Json(json!(rows)).into_response(),
@@ -268,6 +275,7 @@ pub async fn donut_stats(user: AuthUser, State(state): State<AppState>) -> impl 
 }
 
 /// GET /api/dashboard/balance-history?from=YYYY-MM-DD&to=YYYY-MM-DD
+#[tracing::instrument(skip(user, state, params), fields(user_id = %user.unid))]
 pub async fn balance_history(
     user: AuthUser,
     State(state): State<AppState>,

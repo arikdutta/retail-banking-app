@@ -1,6 +1,8 @@
 import { useId, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
+import { report } from "@/lib/error-reporter";
+import { BUG_TYPE } from "@/lib/bug-type";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAccounts } from "@/hooks/data/use-accounts";
@@ -318,20 +320,21 @@ export function SendMoneyModal({ onClose, prefill }: Props) {
       },
       onError: (err) => {
         toast.error(err.message);
+        report({ bugType: BUG_TYPE.Server, message: err.message, ...(err.stack ? { stackTrace: err.stack } : {}) });
         setConfirmPayload(null);
       },
     });
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <button
+        type="button"
+        aria-label="Close"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-default"
+        onClick={onClose}
+      />
+      <div className="relative z-10 w-full max-w-sm rounded-2xl border bg-card p-6 shadow-xl">
         {confirmPayload ? (
           <div className="space-y-4">
             <h2 className="text-sm font-semibold">Confirm Transfer</h2>

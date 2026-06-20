@@ -1,6 +1,8 @@
 import { useState, useId } from "react";
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { report } from "@/lib/error-reporter";
+import { BUG_TYPE } from "@/lib/bug-type";
 import {
   Search,
   Plus,
@@ -67,6 +69,7 @@ function DeleteButton({ recipient }: { recipient: Recipient }) {
       },
       onError: (err) => {
         toast.error(err.message);
+        report({ bugType: BUG_TYPE.Server, message: err.message, ...(err.stack ? { stackTrace: err.stack } : {}) });
         setConfirming(false);
       },
     });
@@ -152,6 +155,7 @@ function CreateRecipientModal({ onClose }: { onClose: () => void }) {
         },
         onError: (err) => {
           toast.error(err.message);
+          report({ bugType: BUG_TYPE.Server, message: err.message, ...(err.stack ? { stackTrace: err.stack } : {}) });
         },
       },
     );

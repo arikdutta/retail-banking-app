@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { CreateTransferRequest } from "@/bindings/CreateTransferRequest";
 import type { PayInvoiceRequest } from "@/bindings/PayInvoiceRequest";
 import type { Transaction } from "@/bindings/Transaction";
+import { HttpError } from "@/lib/http-error";
 
 const API_URL = import.meta.env["VITE_API_URL"] ?? "http://localhost:3001";
 
@@ -14,7 +15,7 @@ async function postTransfer(body: CreateTransferRequest): Promise<Transaction> {
   });
   if (!r.ok) {
     const err = await r.json().catch(() => ({}));
-    throw new Error((err as { error?: string }).error ?? `Transfer failed: ${r.status}`);
+    throw new HttpError(r.status, (err as { error?: string }).error ?? `Transfer failed: ${r.status}`);
   }
   return r.json();
 }
@@ -31,7 +32,7 @@ async function postPayInvoice(
   });
   if (!r.ok) {
     const err = await r.json().catch(() => ({}));
-    throw new Error((err as { error?: string }).error ?? `Payment failed: ${r.status}`);
+    throw new HttpError(r.status, (err as { error?: string }).error ?? `Payment failed: ${r.status}`);
   }
   return r.json();
 }

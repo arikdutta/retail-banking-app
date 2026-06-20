@@ -78,13 +78,17 @@ pub async fn list_bug_reports(
 }
 
 /// GET /api/bugreports/:unid — protected
+#[tracing::instrument(skip(state))]
 pub async fn get_bug_report(
     State(state): State<AppState>,
     Path(unid): Path<Uuid>,
 ) -> impl IntoResponse {
     match BugReportsDb::get_by_unid(&state.pool, unid).await {
         Ok(Some(r)) => Json(json!(r)).into_response(),
-        Ok(None) => (StatusCode::NOT_FOUND, Json(json!({"error": "not found"}))).into_response(),
+        Ok(None) => {
+            tracing::warn!(report_id = %unid, "bug report not found");
+            (StatusCode::NOT_FOUND, Json(json!({"error": "not found"}))).into_response()
+        }
         Err(e) => {
             tracing::error!("bugreports get {unid}: {e}");
             AppError::Internal.into_response()
