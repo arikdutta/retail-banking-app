@@ -7,17 +7,27 @@ type MoneyFlowEntry = {
   expense: number;
 };
 
+export type MoneyFlowPoint = {
+  date: string;
+  moneyIn: number;
+  moneyOut: number;
+};
+
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
 function toLocalDateStr(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+export function mapMoneyFlow(entry: MoneyFlowEntry): MoneyFlowPoint {
+  return { date: entry.date, moneyIn: entry.income, moneyOut: entry.expense };
+}
+
 export function useMoneyFlow(from?: Date, to?: Date) {
   const fromStr = from ? toLocalDateStr(from) : undefined;
   const toStr   = to   ? toLocalDateStr(to)   : undefined;
 
-  return useQuery<MoneyFlowEntry[]>({
+  return useQuery<MoneyFlowEntry[], Error, MoneyFlowPoint[]>({
     queryKey: ["money-flow", fromStr, toStr],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -29,6 +39,7 @@ export function useMoneyFlow(from?: Date, to?: Date) {
       if (!r.ok) throw new HttpError(r.status, "Failed to fetch money flow");
       return r.json();
     },
+    select: (data) => data.map(mapMoneyFlow),
     placeholderData: keepPreviousData,
   });
 }
