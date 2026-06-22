@@ -29,4 +29,6 @@ pub struct CreateTransferRequest {
     pub description: Option<String>,
     #[validate(length(max = 100))]
     pub reference: Option<String>,
+    #[validate(length(min = 15, max = 34))]
+    pub recipient_iban: Option<String>,
 }
