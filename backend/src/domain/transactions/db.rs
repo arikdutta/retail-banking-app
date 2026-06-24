@@ -1,8 +1,8 @@
-use chrono::NaiveDate;
+use chrono::{Duration, NaiveDate, Utc};
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use super::model::{DonutStatRow, MoneyFlowRow, Transaction};
+use super::model::{BalanceHistoryRow, DashboardStatsRow, DonutStatRow, MoneyFlowRow, Transaction};
 
 pub struct TransactionsDb;
 
@@ -128,10 +128,12 @@ impl TransactionsDb {
         .await
     }
 
-    /// Income vs expenses per calendar day for the last 7 days.
+    /// Income vs expenses per calendar day for the given inclusive date range.
     pub async fn money_flow(
         pool: &PgPool,
         user_unid: Uuid,
+        from: NaiveDate,
+        to: NaiveDate,
     ) -> Result<Vec<MoneyFlowRow>, sqlx::Error> {
         sqlx::query_as!(
             MoneyFlowRow,
@@ -143,11 +145,87 @@ impl TransactionsDb {
             FROM transactions t
             JOIN accounts a ON t.account_unid = a.unid
             WHERE a.user_unid = $1
-              AND t.created_at >= CURRENT_DATE - INTERVAL '6 days'
+              AND t.created_at::date >= $2
+              AND t.created_at::date <= $3
             GROUP BY t.created_at::date
             ORDER BY t.created_at::date ASC
             "#,
             user_unid,
+            from,
+            to,
+        )
+        .fetch_all(pool)
+        .await
+    }
+
+    /// Aggregate debit count, total spent, and total received for the last `days` days.
+    pub async fn dashboard_stats(
+        pool: &PgPool,
+        user_unid: Uuid,
+        days: i64,
+    ) -> Result<DashboardStatsRow, sqlx::Error> {
+        let since = Utc::now() - Duration::days(days);
+        sqlx::query_as!(
+            DashboardStatsRow,
+            r#"
+            SELECT
+              COUNT(*) FILTER (WHERE t.amount < 0)                              AS "tx_count!: i64",
+              COALESCE(SUM(-t.amount) FILTER (WHERE t.amount < 0), 0::numeric) AS "total_spent!: rust_decimal::Decimal",
+              COALESCE(SUM(t.amount)  FILTER (WHERE t.amount > 0), 0::numeric) AS "total_received!: rust_decimal::Decimal"
+            FROM transactions t
+            JOIN accounts a ON t.account_unid = a.unid
+            WHERE a.user_unid = $1
+              AND t.created_at >= $2
+            "#,
+            user_unid,
+            since,
+        )
+        .fetch_one(pool)
+        .await
+    }
+
+    /// Running balance per day across all user accounts, derived from ledger entries.
+    /// Includes a starting balance (sum of all ledger entries before `from`) so the
+    /// chart shows the correct balance even when the range does not start at account open.
+    pub async fn balance_history(
+        pool: &PgPool,
+        user_unid: Uuid,
+        from: NaiveDate,
+        to: NaiveDate,
+    ) -> Result<Vec<BalanceHistoryRow>, sqlx::Error> {
+        sqlx::query_as!(
+            BalanceHistoryRow,
+            r#"
+            WITH start_balance AS (
+                SELECT COALESCE(
+                    SUM(CASE WHEN le.entry_type = 'CREDIT' THEN le.amount ELSE -le.amount END),
+                    0
+                ) AS bal
+                FROM ledger_entries le
+                JOIN accounts a ON le.account_unid = a.unid
+                WHERE a.user_unid = $1
+                  AND le.created_at::date < $2
+            ),
+            daily_net AS (
+                SELECT
+                    le.created_at::date AS day,
+                    SUM(CASE WHEN le.entry_type = 'CREDIT' THEN le.amount ELSE -le.amount END) AS daily_change
+                FROM ledger_entries le
+                JOIN accounts a ON le.account_unid = a.unid
+                WHERE a.user_unid = $1
+                  AND le.created_at::date >= $2
+                  AND le.created_at::date <= $3
+                GROUP BY le.created_at::date
+            )
+            SELECT
+                to_char(day, 'YYYY-MM-DD')                                       AS "day!",
+                (SELECT bal FROM start_balance) + SUM(daily_change) OVER (ORDER BY day) AS "balance!"
+            FROM daily_net
+            ORDER BY day
+            "#,
+            user_unid,
+            from,
+            to,
         )
         .fetch_all(pool)
         .await

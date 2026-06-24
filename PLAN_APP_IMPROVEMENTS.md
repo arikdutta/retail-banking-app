@@ -96,6 +96,9 @@ Hardcoded USD/EUR/GBP. Group `GET /api/accounts` response by `currency`, sum bal
 #### 1.5.5 "↑ 2.05% February 05, 2022" (line 103) — hardcoded trend %
 
 Derive on frontend from `money-flow` data once live: compare current 7-day total vs previous 7-day.
+```tsx
+// Removed from the code with the new code changes />
+```
 
 ### 1.6 Replace hardcoded data — page-account-details.tsx
 
@@ -835,28 +838,28 @@ Cargo.toml                                             — Phase 6, 7
 ## Order of execution
 
 ```
-[ ] Phase 1.4  — Replace hardcoded data in page-dashboard.tsx (balance, card brand, date range)
-[ ] Phase 1.5.1 — Wire page-wallets.tsx barData → GET /api/dashboard/money-flow (endpoint exists)
-[ ] Phase 1.5.2 — Wire page-wallets.tsx cards[] → GET /api/accounts (add card_brand migration if needed)
-[ ] Phase 1.5.3 — New endpoint GET /api/dashboard/stats + wire statsRow in page-wallets.tsx
-[ ] Phase 1.5.4 — Wire currencies[] in page-wallets.tsx from accounts grouped by currency
-[ ] Phase 1.5.5 — Derive trend % from live money-flow data (replace "↑ 2.05% Feb 05 2022")
-[ ] Phase 1.6  — Add date_of_birth to users table + wire page-account-details.tsx
-[ ] Phase 1.7  — Send Money form (currency, IBAN validation, confirmation dialog)
-[ ] Phase 1.1  — Wire "View all" links
-[ ] Phase 1.2  — Receive button
-[ ] Phase 1.3  — More dropdown
-[ ] Phase 2.1  — Error cards
-[ ] Phase 2.2  — Empty states
-[ ] Phase 3    — Analytics page
-[ ] Phase 4.1  — AppError type + fix error leaks
-[ ] Phase 4.2  — JWT_SECRET panic fix
-[ ] Phase 4.3  — Role parse fix
+[ ] Phase 1.4  — Replace hardcoded data in page-dashboard.tsx (balance, card brand, date range) ✅
+[ ] Phase 1.5.1 — Wire page-wallets.tsx barData → GET /api/dashboard/money-flow (endpoint exists)✅
+[ ] Phase 1.5.2 — Wire page-wallets.tsx cards[] → GET /api/accounts (add card_brand migration if needed)✅
+[ ] Phase 1.5.3 — New endpoint GET /api/dashboard/stats + wire statsRow in page-wallets.tsx✅
+[ ] Phase 1.5.4 — Wire currencies[] in page-wallets.tsx from accounts grouped by currency✅
+[ ] Phase 1.5.5 — Derive trend % from live money-flow data (replace "↑ 2.05% Feb 05 2022") (Not needed anymore)❌
+[ ] Phase 1.6  — Add date_of_birth to users table + wire page-account-details.tsx ✅
+[ ] Phase 1.7  — Send Money form (currency, IBAN validation, confirmation dialog)✅
+[ ] Phase 1.1  — Wire "View all" links ✅ 
+[ ] Phase 1.2  — Receive button✅
+[ ] Phase 1.3  — More dropdown✅
+[ ] Phase 2.1  — Error cards✅
+[ ] Phase 2.2  — Empty states ✅
+[ ] Phase 3    — Analytics page ✅
+[ ] Phase 4.1  — AppError type + fix error leaks ✅
+[ ] Phase 4.2  — JWT_SECRET panic fix ✅
+[ ] Phase 4.3  — Role parse fix ✅
 [ ] Phase 4.4  — CORS audit + lock down
 [ ] Phase 4.5  — Rate limiting
-[ ] Phase 5.1  — Ledger entries table + double-entry
-[ ] Phase 5.2  — Balance as derived value
-[ ] Phase 5.3  — Balance history view
+[ ] Phase 5.1  — Ledger entries table + double-entry ✅
+[ ] Phase 5.2  — Balance as derived value ✅
+[ ] Phase 5.3  — Balance history view✅
 [ ] Phase 5.4  — Audit trail
 [ ] Phase 5.5  — Idempotency keys
 [ ] Phase 5.6  — Soft-delete consistency

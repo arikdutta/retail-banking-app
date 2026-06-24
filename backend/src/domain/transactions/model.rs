@@ -101,3 +101,24 @@ pub struct DonutStatRow {
     #[ts(type = "number")]
     pub total: Decimal,
 }
+
+/// Aggregate stats for the dashboard stats row (last N days).
+#[derive(Debug, Serialize, sqlx::FromRow, TS)]
+#[ts(export, export_to = "../../frontend/bindings/")]
+pub struct DashboardStatsRow {
+    #[ts(type = "number")]
+    pub tx_count: i64,
+    #[ts(type = "number")]
+    pub total_spent: Decimal,
+    #[ts(type = "number")]
+    pub total_received: Decimal,
+}
+
+/// One point in the balance-over-time line chart: running balance at end of each day.
+#[derive(Debug, Serialize, sqlx::FromRow, TS)]
+#[ts(export, export_to = "../../frontend/bindings/")]
+pub struct BalanceHistoryRow {
+    pub day: String,
+    #[ts(type = "number")]
+    pub balance: Decimal,
+}

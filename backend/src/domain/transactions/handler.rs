@@ -5,7 +5,7 @@ use axum::{
     Json,
 };
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine as _};
-use chrono::NaiveDate;
+use chrono::{Duration, NaiveDate, Utc};
 use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
@@ -13,8 +13,30 @@ use uuid::Uuid;
 use super::db::TransactionsDb;
 use super::emails::build_statement_email_html;
 use crate::domain::auth::middleware::AuthUser;
+use crate::error::AppError;
 use crate::pdf::generate_statement_pdf;
 use crate::state::AppState;
+
+#[derive(Deserialize)]
+pub struct StatsQuery {
+    pub days: Option<i64>,
+}
+
+/// GET /api/dashboard/stats?days=30
+pub async fn dashboard_stats(
+    user: AuthUser,
+    State(state): State<AppState>,
+    Query(params): Query<StatsQuery>,
+) -> impl IntoResponse {
+    let days = params.days.unwrap_or(30).clamp(1, 365);
+    match TransactionsDb::dashboard_stats(&state.pool, user.unid, days).await {
+        Ok(row) => Json(json!(row)).into_response(),
+        Err(e) => {
+            tracing::error!("dashboard stats: {e}");
+            AppError::Internal.into_response()
+        }
+    }
+}
 
 #[derive(Deserialize)]
 pub struct TransactionQuery {
@@ -49,11 +71,7 @@ pub async fn list_transactions(
         }
         Err(e) => {
             tracing::error!("transactions list: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }
@@ -70,11 +88,7 @@ pub async fn recent_activity(
         Ok(rows) => Json(json!(rows)).into_response(),
         Err(e) => {
             tracing::error!("transactions activity: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }
@@ -94,7 +108,7 @@ pub async fn get_transactions_pdf(
         Ok(bytes) => ([(header::CONTENT_TYPE, "application/pdf")], bytes).into_response(),
         Err(e) => {
             tracing::error!("pdf generate: {e}");
-            (StatusCode::INTERNAL_SERVER_ERROR, e).into_response()
+            AppError::Internal.into_response()
         }
     }
 }
@@ -131,7 +145,7 @@ pub async fn email_statement_pdf(
         Ok(bytes) => bytes,
         Err(e) => {
             tracing::error!("statement email pdf generate: {e}");
-            return (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({"error": e}))).into_response();
+            return AppError::Internal.into_response();
         }
     };
 
@@ -166,7 +180,7 @@ pub async fn email_statement_pdf(
             tracing::error!("statement email resend request failed: {e}");
             return (
                 StatusCode::BAD_GATEWAY,
-                Json(json!({"error": e.to_string()})),
+                Json(json!({"error": "email service unavailable"})),
             )
                 .into_response();
         }
@@ -175,7 +189,11 @@ pub async fn email_statement_pdf(
     if !response.status().is_success() {
         let body = response.text().await.unwrap_or_default();
         tracing::error!("statement email resend error: {body}");
-        return (StatusCode::BAD_GATEWAY, Json(json!({"error": body}))).into_response();
+        return (
+            StatusCode::BAD_GATEWAY,
+            Json(json!({"error": "email service unavailable"})),
+        )
+            .into_response();
     }
 
     (StatusCode::OK, Json(json!({"sent": true, "email": email}))).into_response()
@@ -209,23 +227,31 @@ async fn load_statement_context(
             Ok(transactions) => transactions,
             Err(e) => {
                 tracing::error!("statement transactions fetch: {e}");
-                return Err((StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response());
+                return Err(AppError::Internal.into_response());
             }
         };
 
     Ok((email, transactions))
 }
-/// GET /api/dashboard/money-flow
-pub async fn money_flow(user: AuthUser, State(state): State<AppState>) -> impl IntoResponse {
-    match TransactionsDb::money_flow(&state.pool, user.unid).await {
+#[derive(Deserialize)]
+pub struct MoneyFlowQuery {
+    pub from: Option<NaiveDate>,
+    pub to: Option<NaiveDate>,
+}
+
+/// GET /api/dashboard/money-flow?from=YYYY-MM-DD&to=YYYY-MM-DD
+pub async fn money_flow(
+    user: AuthUser,
+    State(state): State<AppState>,
+    Query(params): Query<MoneyFlowQuery>,
+) -> impl IntoResponse {
+    let to   = params.to.unwrap_or_else(|| Utc::now().date_naive());
+    let from = params.from.unwrap_or_else(|| to - Duration::days(6));
+    match TransactionsDb::money_flow(&state.pool, user.unid, from, to).await {
         Ok(rows) => Json(json!(rows)).into_response(),
         Err(e) => {
             tracing::error!("dashboard money-flow: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }
@@ -236,11 +262,24 @@ pub async fn donut_stats(user: AuthUser, State(state): State<AppState>) -> impl 
         Ok(rows) => Json(json!(rows)).into_response(),
         Err(e) => {
             tracing::error!("dashboard donut-stats: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
+        }
+    }
+}
+
+/// GET /api/dashboard/balance-history?from=YYYY-MM-DD&to=YYYY-MM-DD
+pub async fn balance_history(
+    user: AuthUser,
+    State(state): State<AppState>,
+    Query(params): Query<MoneyFlowQuery>,
+) -> impl IntoResponse {
+    let to   = params.to.unwrap_or_else(|| Utc::now().date_naive());
+    let from = params.from.unwrap_or_else(|| to - Duration::days(30));
+    match TransactionsDb::balance_history(&state.pool, user.unid, from, to).await {
+        Ok(rows) => Json(json!(rows)).into_response(),
+        Err(e) => {
+            tracing::error!("dashboard balance-history: {e}");
+            AppError::Internal.into_response()
         }
     }
 }

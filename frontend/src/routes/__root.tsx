@@ -8,6 +8,7 @@ import {
   ErrorComponent,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { APP_NAME, APP_DESCRIPTION } from "@/lib/app-config";
 import { initErrorReporter, report, setReporterUser } from "@/lib/error-reporter";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -47,8 +48,8 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Rust Finance" },
-      { name: "description", content: "Rust Finance — your personal banking app." },
+      { title: APP_NAME },
+      { name: "description", content: APP_DESCRIPTION },
     ],
     links: [
       { rel: "stylesheet", href: globalsCss },

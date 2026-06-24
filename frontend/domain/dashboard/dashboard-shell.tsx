@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { APP_NAME } from "@/lib/app-config";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
@@ -89,7 +90,7 @@ export function DashboardShell({ user, children }: Props) {
                   </div>
                   <div className="flex flex-col gap-0.5 leading-none">
                     <span className="font-bold text-base tracking-tight">
-                      Rust Finance<span className="text-blue-600">.</span>
+                      {APP_NAME}<span className="text-blue-600">.</span>
                     </span>
                     <span className="text-[10px] text-muted-foreground">Banking</span>
                   </div>

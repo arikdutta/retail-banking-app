@@ -12,6 +12,7 @@ use uuid::Uuid;
 use super::db::InvoicesDb;
 use super::model::{CreateInvoiceRequest, PayInvoiceRequest};
 use crate::domain::auth::middleware::AuthUser;
+use crate::error::AppError;
 use crate::state::AppState;
 
 #[derive(Debug)]
@@ -60,11 +61,7 @@ pub async fn list_invoices(
         }
         Err(e) => {
             tracing::error!("invoices list: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }
@@ -84,11 +81,7 @@ pub async fn get_invoice(
             .into_response(),
         Err(e) => {
             tracing::error!("invoices get {id}: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }
@@ -103,11 +96,7 @@ pub async fn create_invoice(
         Ok(invoice) => (StatusCode::CREATED, Json(json!(invoice))).into_response(),
         Err(e) => {
             tracing::error!("invoices create: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }
@@ -130,11 +119,7 @@ pub async fn pay_invoice(
         }
         Err(e) => {
             tracing::error!("pay invoice get {id}: {e}");
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response();
+            return AppError::Internal.into_response();
         }
     };
 
@@ -151,11 +136,7 @@ pub async fn pay_invoice(
         Ok(t) => t,
         Err(e) => {
             tracing::error!("pay invoice begin tx {id}: {e}");
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response();
+            return AppError::Internal.into_response();
         }
     };
 
@@ -178,11 +159,7 @@ pub async fn pay_invoice(
         }
         Err(e) => {
             tracing::error!("pay invoice lock account {id}: {e}");
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response();
+            return AppError::Internal.into_response();
         }
     };
 
@@ -244,20 +221,12 @@ pub async fn pay_invoice(
 
     if let Err(e) = steps {
         tracing::error!("pay invoice steps {id}: {e}");
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({"error": e.to_string()})),
-        )
-            .into_response();
+        return AppError::Internal.into_response();
     }
 
     if let Err(e) = db_tx.commit().await {
         tracing::error!("pay invoice commit {id}: {e}");
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({"error": e.to_string()})),
-        )
-            .into_response();
+        return AppError::Internal.into_response();
     }
 
     (StatusCode::OK, Json(json!({"paid": true, "invoice_id": id}))).into_response()
@@ -288,11 +257,7 @@ pub async fn update_invoice_status(
             .into_response(),
         Err(e) => {
             tracing::error!("invoices update status {id}: {e}");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            )
-                .into_response()
+            AppError::Internal.into_response()
         }
     }
 }
