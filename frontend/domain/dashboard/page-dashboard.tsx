@@ -1,4 +1,7 @@
 import { useState } from "react";
+import type { DateRange } from "react-day-picker";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   LineChart,
   Line,
@@ -19,23 +22,40 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   RotateCcw,
+  CalendarIcon,
+  ArrowLeftRight,
+  Clock,
+  PiggyBank,
+  TrendingUp,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { PromoBanner } from "@/domain/dashboard/promo-banner";
 import { SendMoneyModal, type SendMoneyPrefill } from "@/domain/dashboard/send-money-modal";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorCard } from "@/components/ui/error-card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
+import { APP_NAME } from "@/lib/app-config";
+import { toast } from "sonner";
 import { useStatCards } from "@/hooks/data/use-stat-cards";
 import { useMoneyFlow } from "@/hooks/data/use-money-flow";
 import { useRecentTransactions } from "@/hooks/data/use-recent-transactions";
 import { useSavings } from "@/hooks/data/use-savings";
 import { useDonutStats } from "@/hooks/data/use-donut-stats";
+import { useAccounts } from "@/hooks/data/use-accounts";
 import type { Transaction } from "@/bindings/Transaction";
 
-const API_URL = import.meta.env["VITE_API_URL"] ?? "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
 function useActivityFeed(limit = 10) {
   return useQuery<Transaction[]>({
@@ -62,8 +82,9 @@ function fmtDate(iso: string) {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function StatCards() {
-  const { data, isPending } = useStatCards();
+  const { data, isPending, isError, refetch } = useStatCards();
 
+  if (isError) return <ErrorCard message="Failed to load stats. Retry?" onRetry={refetch} />;
   if (isPending) return (
     <div className="grid grid-cols-3 gap-4">
       {[0, 1, 2].map((i) => (
@@ -102,7 +123,22 @@ function StatCards() {
 }
 
 function MoneyFlowChart() {
-  const { data, isPending } = useMoneyFlow();
+  const [dateRange, setDateRange] = useState<DateRange>(() => {
+    const to   = new Date();
+    const from = new Date(to);
+    from.setDate(from.getDate() - 6);
+    return { from, to };
+  });
+  const [calOpen, setCalOpen] = useState(false);
+
+  const { data, isPending, isFetching, isError, refetch } = useMoneyFlow(dateRange.from, dateRange.to);
+
+  const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const rangeLabel = dateRange.from && dateRange.to
+    ? `${fmt(dateRange.from)} – ${fmt(dateRange.to)}`
+    : dateRange.from ? fmt(dateRange.from) : "Pick a range";
+
+  if (isError) return <ErrorCard message="Failed to load money flow. Retry?" onRetry={refetch} />;
 
   return (
     <div className="rounded-xl border bg-card p-5">
@@ -115,7 +151,29 @@ function MoneyFlowChart() {
           <span className="flex items-center gap-1.5">
             <span className="inline-block h-2 w-2 rounded-full bg-blue-200" /> Expenses
           </span>
-          <span>Jan 10 – Jan 16</span>
+          {isPending ? (
+            <Skeleton className="h-3 w-24" />
+          ) : (
+            <Popover open={calOpen} onOpenChange={setCalOpen}>
+              <PopoverTrigger asChild>
+                <button className="flex items-center gap-1.5 border rounded px-2 py-1 hover:bg-muted transition-colors">
+                  <CalendarIcon className="h-3 w-3" />
+                  {rangeLabel}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={(range) => {
+                    if (range) setDateRange(range);
+                    if (range?.from && range?.to) setCalOpen(false);
+                  }}
+                  numberOfMonths={1}
+                />
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
       </div>
       {isPending ? (
@@ -132,7 +190,7 @@ function MoneyFlowChart() {
           </div>
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={200} className={isFetching ? "opacity-50 transition-opacity" : "transition-opacity"}>
           <LineChart data={data ?? []} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
             <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={fmtDate} />
@@ -146,8 +204,8 @@ function MoneyFlowChart() {
               contentStyle={{ borderRadius: 8, fontSize: 12, border: "1px solid hsl(var(--border))" }}
               formatter={(val) => [`$${Number(val).toLocaleString()}`, ""]}
             />
-            <Line type="monotone" dataKey="income"   stroke="#3B82F6" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
-            <Line type="monotone" dataKey="expenses" stroke="#BFDBFE" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+            <Line type="monotone" dataKey="income"  stroke="#3B82F6" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+            <Line type="monotone" dataKey="expense" stroke="#BFDBFE" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
           </LineChart>
         </ResponsiveContainer>
       )}
@@ -156,13 +214,14 @@ function MoneyFlowChart() {
 }
 
 function RecentTransactions() {
-  const { data, isPending } = useRecentTransactions();
+  const { data, isPending, isError, refetch } = useRecentTransactions();
 
+  if (isError) return <ErrorCard message="Failed to load transactions. Retry?" onRetry={refetch} />;
   return (
     <div className="rounded-xl border bg-card p-5">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="font-semibold text-sm">Recent Transactions</h3>
-        <button className="text-xs text-blue-600 hover:underline">View all</button>
+        <Link to="/dashboard/transactions" search={{ page: 1 }} className="text-xs text-blue-600 hover:underline">View all</Link>
       </div>
       {isPending ? (
         <div className="space-y-3">
@@ -180,6 +239,8 @@ function RecentTransactions() {
             </div>
           ))}
         </div>
+      ) : !(data ?? []).length ? (
+        <EmptyState icon={ArrowLeftRight} message="No transactions yet" />
       ) : (
         <div className="space-y-3">
           {(data ?? []).map((tx, i) => (
@@ -217,17 +278,31 @@ function RecentTransactions() {
 }
 
 function WalletCard() {
+  const { data: accounts, isPending, isError, refetch } = useAccounts();
+
+  if (isError) return <ErrorCard message="Failed to load wallet. Retry?" onRetry={refetch} />;
+  const primary = accounts?.[0];
+  const balance = primary
+    ? primary.balance.toLocaleString("en-US", { style: "currency", currency: primary.currency })
+    : null;
+
   return (
     <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-5 text-white shadow-lg">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs opacity-70">Balance</p>
-          <p className="mt-1 text-2xl font-bold tracking-tight">$24,098.00</p>
+          {isPending ? (
+            <Skeleton className="mt-1 h-7 w-28 bg-white/20" />
+          ) : (
+            <p className="mt-1 text-2xl font-bold tracking-tight">{balance}</p>
+          )}
         </div>
-        <p className="text-xs font-bold tracking-widest opacity-80 mt-1">VISA</p>
+        <p className="text-xs font-bold tracking-widest opacity-80 mt-1">
+          {primary?.account_type.toUpperCase() ?? ""}
+        </p>
       </div>
       <div className="mt-5 flex items-center justify-between">
-        <p className="text-xs font-semibold opacity-60">Rust Finance.</p>
+        <p className="text-xs font-semibold opacity-60">{APP_NAME}</p>
         <div className="flex items-center">
           <div className="h-6 w-6 rounded-full bg-white/30" />
           <div className="-ml-3 h-6 w-6 rounded-full bg-white/20" />
@@ -242,7 +317,7 @@ function WalletCard() {
 
 const ACTION_CLS = "flex flex-col items-center gap-1.5 rounded-xl border bg-card p-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
 
-function WalletActions({ onSend }: { onSend: () => void }) {
+function WalletActions({ onSend, onReceive }: { onSend: () => void; onReceive: () => void }) {
   return (
     <div className="grid grid-cols-4 gap-2">
       <button className={ACTION_CLS} onClick={onSend}>
@@ -251,18 +326,29 @@ function WalletActions({ onSend }: { onSend: () => void }) {
         </div>
         Send
       </button>
-      <button className={ACTION_CLS}>
+      <button className={ACTION_CLS} onClick={onReceive}>
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/30">
           <Download className="h-4 w-4" />
         </div>
         Receive
       </button>
-      <button className={ACTION_CLS}>
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/30">
-          <MoreHorizontal className="h-4 w-4" />
-        </div>
-        More
-      </button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className={ACTION_CLS}>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/30">
+              <MoreHorizontal className="h-4 w-4" />
+            </div>
+            More
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="center" className="w-44">
+          <DropdownMenuItem>View statements</DropdownMenuItem>
+          <DropdownMenuItem>Manage card</DropdownMenuItem>
+          <DropdownMenuItem>Deposit</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem>Settings</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       <Link to="/dashboard/invoices" search={{ page: 1 }} className={ACTION_CLS}>
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/30">
           <FileText className="h-4 w-4" />
@@ -285,13 +371,14 @@ function QuickTransfer({ onSend }: { onSend: () => void }) {
 }
 
 function RecentActivity({ onSendAgain }: { onSendAgain: (prefill: SendMoneyPrefill) => void }) {
-  const { data, isPending } = useActivityFeed(8);
+  const { data, isPending, isError, refetch } = useActivityFeed(8);
 
+  if (isError) return <ErrorCard message="Failed to load activity. Retry?" onRetry={refetch} />;
   return (
     <div className="rounded-xl border bg-card p-5">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="font-semibold text-sm">Recent Activity</h3>
-        <button className="text-xs text-blue-600 hover:underline">View all</button>
+        <Link to="/dashboard/transactions" search={{ page: 1 }} className="text-xs text-blue-600 hover:underline">View all</Link>
       </div>
       {isPending ? (
         <div className="space-y-3">
@@ -306,6 +393,8 @@ function RecentActivity({ onSendAgain }: { onSendAgain: (prefill: SendMoneyPrefi
             </div>
           ))}
         </div>
+      ) : !(data ?? []).length ? (
+        <EmptyState icon={Clock} message="No recent activity" />
       ) : (
         <div className="space-y-3">
           {(data ?? []).map((tx, i) => {
@@ -351,7 +440,9 @@ function RecentActivity({ onSendAgain }: { onSendAgain: (prefill: SendMoneyPrefi
 }
 
 function SavingsSection() {
-  const { data, isPending } = useSavings();
+  const { data, isPending, isError, refetch } = useSavings();
+
+  if (isError) return <ErrorCard message="Failed to load savings. Retry?" onRetry={refetch} />;
 
   return (
     <div className="rounded-xl border bg-card p-5">
@@ -371,6 +462,8 @@ function SavingsSection() {
             </div>
           ))}
         </div>
+      ) : !(data ?? []).length ? (
+        <EmptyState icon={PiggyBank} message="No savings goals yet" />
       ) : (
         <div className="space-y-4">
           {(data ?? []).map((item, i) => {
@@ -394,13 +487,15 @@ function SavingsSection() {
 }
 
 function StatisticsDonut() {
-  const { data, isPending } = useDonutStats();
+  const { data, isPending, isError, refetch } = useDonutStats();
+
+  if (isError) return <ErrorCard message="Failed to load statistics. Retry?" onRetry={refetch} />;
 
   return (
     <div className="rounded-xl border bg-card p-5">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="font-semibold text-sm">Statistics</h3>
-        <button className="text-xs text-blue-600 hover:underline">View all</button>
+        <Link to="/dashboard/analytics" className="text-xs text-blue-600 hover:underline">View all</Link>
       </div>
       {isPending ? (
         <div className="flex items-center gap-3">
@@ -415,12 +510,14 @@ function StatisticsDonut() {
             ))}
           </div>
         </div>
+      ) : !(data ?? []).length ? (
+        <EmptyState icon={TrendingUp} message="No spending data yet" />
       ) : (
         <div className="flex items-center gap-3">
           <PieChart width={90} height={90}>
             <Pie data={data ?? []} cx={40} cy={40} innerRadius={24} outerRadius={42} dataKey="amount" strokeWidth={0}>
               {(data ?? []).map((_entry, i) => (
-                <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]!} />
+                <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length] ?? "#3B82F6"} />
               ))}
             </Pie>
           </PieChart>
@@ -443,9 +540,21 @@ function StatisticsDonut() {
 
 export default function PageDashboard() {
   const [sendPrefill, setSendPrefill] = useState<SendMoneyPrefill | null>(null);
+  const { data: accounts } = useAccounts();
 
   function openSend(prefill?: SendMoneyPrefill) {
     setSendPrefill(prefill ?? {});
+  }
+
+  function handleReceive() {
+    const iban = accounts?.[0]?.iban;
+    if (!iban) {
+      toast.error("No IBAN available for this account.");
+      return;
+    }
+    navigator.clipboard.writeText(iban).then(() => {
+      toast.success("IBAN copied to clipboard", { description: iban });
+    });
   }
 
   return (
@@ -472,7 +581,7 @@ export default function PageDashboard() {
       {/* Right column */}
       <div className="flex w-72 shrink-0 flex-col gap-4">
         <WalletCard />
-        <WalletActions onSend={() => openSend()} />
+        <WalletActions onSend={() => openSend()} onReceive={handleReceive} />
         <QuickTransfer onSend={() => openSend()} />
         <RecentActivity onSendAgain={(prefill) => openSend(prefill)} />
       </div>

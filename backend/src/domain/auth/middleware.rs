@@ -67,7 +67,14 @@ impl FromRequestParts<AppState> for AuthUser {
 
         Ok(AuthUser {
             unid: claims.sub,
-            role: role.parse().unwrap_or(Role::RegularUser),
+            role: role.parse().map_err(|_| {
+                tracing::error!("invalid role value in db: {:?}", role);
+                (
+                    StatusCode::UNAUTHORIZED,
+                    axum::Json(json!({"error": "invalid role"})),
+                )
+                    .into_response()
+            })?,
         })
     }
 }

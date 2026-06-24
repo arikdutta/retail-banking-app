@@ -1,4 +1,5 @@
 pub mod domain;
+pub mod error;
 pub mod pdf;
 pub mod state;
 
@@ -19,6 +20,7 @@ pub fn build_app(state: AppState) -> Router {
         .merge(domain::transfers::routes())
         .merge(domain::bugreports::protected_routes())
         .merge(domain::roleaccesses::routes())
+        .merge(domain::user_profile::routes())
         .layer(middleware::from_fn(require_auth));
 
     let public = Router::new()

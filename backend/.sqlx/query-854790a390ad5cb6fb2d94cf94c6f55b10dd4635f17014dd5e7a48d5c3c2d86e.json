@@ -1,0 +1,82 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT user_unid, first_name, last_name, date_of_birth,\n                   phone, country, city, address, postal_code, avatar_data, updated_at\n            FROM user_profiles\n            WHERE user_unid = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_unid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "first_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "last_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "date_of_birth",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 4,
+        "name": "phone",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "country",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "city",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "address",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "postal_code",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "avatar_data",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "854790a390ad5cb6fb2d94cf94c6f55b10dd4635f17014dd5e7a48d5c3c2d86e"
+}
