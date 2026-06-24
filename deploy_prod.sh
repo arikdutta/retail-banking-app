@@ -48,7 +48,7 @@ fi
 echo "✅ On main, working tree is clean"
 
 echo "🗄️  Running cargo sqlx prepare..."
-(cd backend && cargo sqlx prepare)
+(cd backend && export DATABASE_URL=postgres://postgres:password@127.0.0.1/retail_banking_app && cargo sqlx prepare)
 git add backend/.sqlx/
 if ! git diff --cached --quiet -- backend/.sqlx/; then
     echo "📝 .sqlx files changed — committing and pushing..."
