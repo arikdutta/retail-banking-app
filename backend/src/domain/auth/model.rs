@@ -1,9 +1,12 @@
 use serde::{Deserialize, Serialize};
 use strum::{Display, EnumString};
+use validator::Validate;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct LoginRequest {
+    #[validate(email)]
     pub email: String,
+    #[validate(length(min = 8, max = 128))]
     pub password: String,
 }
 

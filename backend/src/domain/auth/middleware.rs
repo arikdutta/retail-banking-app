@@ -92,6 +92,7 @@ impl FromRequestParts<AppState> for AdminUser {
     ) -> Result<Self, Self::Rejection> {
         let user = AuthUser::from_request_parts(parts, state).await?;
         if !user.role.is_elevated() {
+            tracing::warn!(user_id = %user.unid, role = %user.role, "admin required");
             return Err((
                 StatusCode::FORBIDDEN,
                 axum::Json(json!({"error": "admin required"})),
@@ -115,6 +116,7 @@ impl FromRequestParts<AppState> for RootUser {
     ) -> Result<Self, Self::Rejection> {
         let user = AuthUser::from_request_parts(parts, state).await?;
         if user.role != Role::Root {
+            tracing::warn!(user_id = %user.unid, role = %user.role, "root required");
             return Err((
                 StatusCode::FORBIDDEN,
                 axum::Json(json!({"error": "root required"})),

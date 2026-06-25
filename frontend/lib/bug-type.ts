@@ -7,5 +7,8 @@ export const BUG_TYPE = {
   PromiseRejection: "PromiseRejection",
   BrowserWarning: "BrowserWarning",
   NetworkError: "NetworkError",
+  NotFound: "NotFound",
+  AuthError: "AuthError",
+  ApiError: "ApiError",
   Payment: "Payment",
 } as const satisfies Record<string, BugType>;

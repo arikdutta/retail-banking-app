@@ -1,4 +1,5 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { HttpError } from "@/lib/http-error";
 
 type MoneyFlowEntry = {
   date: string;
@@ -25,7 +26,7 @@ export function useMoneyFlow(from?: Date, to?: Date) {
       const r = await fetch(`${API_URL}/api/dashboard/money-flow?${params}`, {
         credentials: "include",
       });
-      if (!r.ok) throw new Error("Failed to fetch money flow");
+      if (!r.ok) throw new HttpError(r.status, "Failed to fetch money flow");
       return r.json();
     },
     placeholderData: keepPreviousData,

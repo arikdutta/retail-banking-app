@@ -4,6 +4,7 @@ use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation}
 use serde_json::json;
 use time::Duration;
 use uuid::Uuid;
+use validator::Validate;
 
 use super::middleware::AdminUser;
 use super::model::{Claims, LoginRequest};
@@ -48,11 +49,20 @@ pub fn verify_token(token: &str) -> Result<Claims, anyhow::Error> {
 }
 
 /// POST /api/auth/login
+#[tracing::instrument(skip(state, jar))]
 pub async fn login(
     State(state): State<AppState>,
     jar: CookieJar,
     Json(body): Json<LoginRequest>,
 ) -> impl IntoResponse {
+    if let Err(e) = body.validate() {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(json!({"error": e.to_string()})),
+        )
+            .into_response();
+    }
+
     let row = sqlx::query_as!(
         LoginRow,
         "SELECT unid, password FROM users WHERE email = $1",
@@ -64,6 +74,7 @@ pub async fn login(
     let row = match row {
         Ok(Some(r)) => r,
         Ok(None) => {
+            tracing::warn!("login failed: unknown email");
             return (
                 StatusCode::UNAUTHORIZED,
                 Json(json!({"error": "invalid credentials"})),
@@ -81,6 +92,7 @@ pub async fn login(
     };
 
     if !pwhash::unix::verify(&body.password, &row.password) {
+        tracing::warn!(user_id = %row.unid, "login failed: wrong password");
         return (
             StatusCode::UNAUTHORIZED,
             Json(json!({"error": "invalid credentials"})),
@@ -111,20 +123,24 @@ pub async fn login(
         .max_age(Duration::days(30))
         .build();
 
+    tracing::info!(user_id = %row.unid, "login");
     (jar.add(cookie), Json(json!({"ok": true}))).into_response()
 }
 
 /// POST /api/auth/logout
+#[tracing::instrument(skip(jar))]
 pub async fn logout(jar: CookieJar) -> impl IntoResponse {
     let cookie = Cookie::build(("session", ""))
         .http_only(true)
         .path("/")
         .max_age(Duration::seconds(0))
         .build();
+    tracing::info!("logout");
     (jar.add(cookie), Json(json!({"ok": true}))).into_response()
 }
 
 /// GET /api/auth/me
+#[tracing::instrument(skip(state, jar))]
 pub async fn me(State(state): State<AppState>, jar: CookieJar) -> impl IntoResponse {
     let token = match jar.get("session") {
         Some(c) => c.value().to_string(),
@@ -171,6 +187,7 @@ pub async fn me(State(state): State<AppState>, jar: CookieJar) -> impl IntoRespo
 }
 
 /// GET /api/dashboard/users — admin or root only.
+#[tracing::instrument(skip(state, _admin))]
 pub async fn dashboard_users(
     State(state): State<AppState>,
     _admin: AdminUser,

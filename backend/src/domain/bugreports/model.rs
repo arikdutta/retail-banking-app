@@ -32,6 +32,9 @@ pub enum BugType {
     PromiseRejection,
     BrowserWarning,
     NetworkError,
+    NotFound,
+    AuthError,
+    ApiError,
     Payment,
 }
 
