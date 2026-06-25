@@ -558,8 +558,8 @@ Notation: ✅ exists · ❌ missing
 | `login_unknown_user_returns_401` | ✅ | — |
 | `protected_routes_return_401_without_cookie` | ✅ | — |
 | `me_returns_authenticated_user` | ✅ | — |
-| `logout_clears_session_cookie` | ❌ | POST /api/auth/logout → cookie cleared; subsequent GET /api/auth/me → 401 |
-| `admin_only_routes_reject_regular_user` | ❌ | user@ hitting admin routes → 403 |
+| `logout_clears_session_cookie` | ✅ | POST /api/auth/logout → cookie cleared; subsequent GET /api/auth/me → 401 |
+| `admin_only_routes_reject_regular_user` | ✅ | user@ hitting admin routes → 403 |
 
 ---
 
@@ -570,8 +570,8 @@ Notation: ✅ exists · ❌ missing
 | `list_accounts_returns_array` | ✅ | — |
 | `get_account_returns_200_for_owner` | ✅ | — |
 | `get_account_returns_forbidden_for_other_user` | ✅ | — |
-| `get_account_returns_404_for_nonexistent` | ❌ | Random UUID → 404 (validates 7.4 tracing::warn path) |
-| `list_accounts_isolates_by_user` | ❌ | root@'s accounts absent from user@'s list |
+| `get_account_returns_404_for_nonexistent` | ✅ | Random UUID → 404 (validates 7.4 tracing::warn path) |
+| `list_accounts_isolates_by_user` | ✅ | root@'s accounts absent from user@'s list |
 
 ---
 
@@ -582,10 +582,10 @@ Notation: ✅ exists · ❌ missing
 | `list_transactions_returns_paginated_json` | ✅ | — |
 | `recent_activity_returns_array` | ✅ | — |
 | `email_statement_returns_500_when_resend_key_missing` | ✅ | — |
-| `list_transactions_filtered_by_account` | ❌ | `?account_unid=SEEDED` → all rows belong to that account |
-| `list_transactions_per_page_clamped` | ❌ | `?per_page=999` → response per_page ≤ 100 |
-| `pdf_download_returns_pdf_content_type` | ❌ | GET /api/transactions/pdf?from=...&to=... → content-type: application/pdf |
-| `transactions_isolates_by_user` | ❌ | root@'s transactions not visible to user@ |
+| `list_transactions_filtered_by_account` | ✅ | `?account_unid=SEEDED` → all rows belong to that account |
+| `list_transactions_per_page_clamped` | ✅ | `?per_page=999` → response per_page ≤ 100 |
+| `pdf_download_returns_pdf_content_type` | ✅ | GET /api/transactions/pdf?from=...&to=... → content-type: application/pdf |
+| `transactions_isolates_by_user` | ✅ | root@'s transactions not visible to user@ |
 
 ---
 
@@ -593,12 +593,12 @@ Notation: ✅ exists · ❌ missing
 
 | Test | | Verify |
 |------|-|--------|
-| `create_transfer_happy_path` | ❌ | Valid transfer → 201; source balance decremented |
-| `create_transfer_insufficient_funds_returns_422` | ❌ | amount > balance → 422; balance unchanged |
-| `create_transfer_from_other_users_account_returns_403` | ❌ | User A cannot debit User B's account |
-| `create_transfer_amount_zero_returns_422` | ❌ | `amount: 0` → 422 (after Phase 6) |
-| `transfer_idempotency_prevents_duplicate` | ❌ | Same idempotency key twice → balance deducted once (after Phase 5.5) |
-| `concurrent_transfers_no_double_debit` | ❌ | Two simultaneous transfers where only one can succeed → exactly one 201 |
+| `create_transfer_happy_path` | ✅  | Valid transfer → 201; source balance decremented |
+| `create_transfer_insufficient_funds_returns_422` | ✅  | amount > balance → 422; balance unchanged |
+| `create_transfer_from_other_users_account_returns_403` | ✅  | User A cannot debit User B's account |
+| `create_transfer_amount_zero_returns_422` | ✅  | `amount: 0` → 422 (after Phase 6) |
+| `transfer_idempotency_prevents_duplicate` | ✅ | Same idempotency key twice → balance deducted once (after Phase 5.5) |
+| `concurrent_transfers_no_double_debit` | ✅ | Two simultaneous transfers where only one can succeed → exactly one 201 |
 
 ```rust
 // concurrent pattern:
@@ -609,14 +609,14 @@ assert_eq!(ok_count, 1);
 
 ---
 
-### 8.5 Recipients  ← all missing
+### 8.5 Recipients
 
 | Test | | Verify |
 |------|-|--------|
-| `list_recipients_returns_array` | ❌ | GET /api/recipients → 200, array |
-| `create_recipient_returns_201` | ❌ | POST valid body → 201, `unid` in response |
-| `delete_own_recipient_returns_200` | ❌ | Owner deletes → 200 |
-| `delete_other_users_recipient_returns_403` | ❌ | Cross-user delete → 403 |
+| `list_recipients_returns_array` | ✅ | GET /api/recipients → 200, `data` array (paginated) |
+| `create_recipient_returns_201` | ✅ | POST valid body → 201, `unid` in response |
+| `delete_own_recipient_returns_204` | ✅ | Owner deletes → 204 (NO_CONTENT) |
+| `delete_other_users_recipient_returns_404` | ✅ | Cross-user delete → 404 (DB filters by user_unid, no 403 path) |
 
 ---
 
@@ -624,11 +624,11 @@ assert_eq!(ok_count, 1);
 
 | Test | | Verify |
 |------|-|--------|
-| `list_invoices_returns_paginated_json` | ❌ | GET /api/invoices → `{ data, page, total }` |
-| `create_invoice_returns_201` | ❌ | POST valid body → 201, `unid` in response |
-| `update_invoice_status_valid_transition` | ❌ | pending → paid → 200 |
-| `update_invoice_status_invalid_returns_422` | ❌ | paid → pending → 422 (if transitions enforced) |
-| `invoices_isolates_by_user` | ❌ | user@ cannot see root@'s invoices |
+| `list_invoices_returns_paginated_json` | ✅ | GET /api/invoices → `{ data, page, total }` |
+| `create_invoice_returns_201` | ✅ | POST valid body → 201, `unid` in response |
+| `update_invoice_status_valid_transition` | ✅ | pending → paid → 200 |
+| `update_invoice_status_invalid_returns_422` | ✅ | paid → pending → 422 (if transitions enforced) |
+| `invoices_isolates_by_user` | ✅ | user@ cannot see root@'s invoices |
 
 ---
 
@@ -637,10 +637,10 @@ assert_eq!(ok_count, 1);
 | Test | | Verify |
 |------|-|--------|
 | `list_savings_goals_returns_array` | ✅ | — |
-| `create_savings_goal_returns_201` | ❌ | POST valid body → 201 |
-| `update_savings_goal_progress` | ❌ | PATCH → updated `current_amount` in subsequent GET |
-| `delete_savings_goal` | ❌ | DELETE own → 200; goal absent from list |
-| `delete_other_users_goal_returns_403` | ❌ | Cross-user delete → 403 |
+| `create_savings_goal_returns_201` | ✅ | POST valid body → 201 |
+| `update_savings_goal_progress` | ✅ | PATCH → updated `current_amount` in subsequent GET |
+| `delete_savings_goal` | ✅ | DELETE own → 200; goal absent from list |
+| `delete_other_users_goal_returns_403` | ✅ | Cross-user delete → 403 |
 
 ---
 
@@ -651,10 +651,10 @@ assert_eq!(ok_count, 1);
 | `create_bug_report_is_public` | ✅ | — |
 | `list_bug_reports_requires_auth` | ✅ | — |
 | `list_bug_reports_returns_data_for_admin` | ✅ | — |
-| `list_bug_reports_filtered_by_type` | ❌ | `?bug_type=Bug` → all rows have `bugtype = "Bug"` |
-| `list_bug_reports_filtered_by_search` | ❌ | `?search=xyz` → only matching rows |
-| `delete_all_bug_reports_clears_table` | ❌ | DELETE → 200; list returns empty `data` |
-| `bug_report_charts_returns_array` | ❌ | GET /api/bugreports/charts?days=30 → 200, array |
+| `list_bug_reports_filtered_by_type` | ✅ | `?bug_type=Bug` → all rows have `bugtype = "Bug"` |
+| `list_bug_reports_filtered_by_search` | ✅ | `?search=xyz` → only matching rows |
+| `delete_all_bug_reports_clears_table` | ✅ | DELETE → 200; list returns empty `data` |
+| `bug_report_charts_returns_array` | ✅ | GET /api/bugreports/charts?days=30 → 200, array |
 
 ---
 
@@ -664,9 +664,9 @@ assert_eq!(ok_count, 1);
 |------|-|--------|
 | `dashboard_money_flow_returns_array` | ✅ | — |
 | `dashboard_donut_stats_returns_array` | ✅ | — |
-| `dashboard_money_flow_shape` | ❌ | Each item has `date`, `money_in`, `money_out` fields |
-| `dashboard_donut_stats_shape` | ❌ | Each item has `label`, `value` fields |
-| `dashboard_stats_returns_correct_shape` | ❌ | GET /api/dashboard/stats → `{ tx_count, total_spent, total_received }` (new endpoint, Phase 1.5.3) |
+| `dashboard_money_flow_shape` | ✅ | Each item has `date`, `money_in`, `money_out` fields |
+| `dashboard_donut_stats_shape` | ✅ | Each item has `label`, `value` fields |
+| `dashboard_stats_returns_correct_shape` | ✅ | GET /api/dashboard/stats → `{ tx_count, total_spent, total_received }` (new endpoint, Phase 1.5.3) |
 
 ---
 
@@ -675,8 +675,8 @@ assert_eq!(ok_count, 1);
 | Test | | Verify |
 |------|-|--------|
 | `my_roles_returns_array` | ✅ | — |
-| `regular_user_cannot_list_all_roles` | ❌ | user@ → 403 |
-| `admin_can_list_all_roles` | ❌ | admin@ → 200 |
+| `regular_user_cannot_list_all_roles` | ✅ | user@ → 403 |
+| `admin_can_list_all_roles` | ✅ | admin@ → 200 |
 
 ---
 
@@ -684,11 +684,11 @@ assert_eq!(ok_count, 1);
 
 | Test | | Verify |
 |------|-|--------|
-| `login_empty_email_returns_422` | ❌ | `{ email: "", password: "x" }` → 422 |
-| `transfer_amount_zero_returns_422` | ❌ | `{ amount: 0, ... }` → 422 |
-| `transfer_amount_negative_returns_422` | ❌ | `{ amount: -1, ... }` → 422 |
-| `transfer_iban_too_short_returns_422` | ❌ | `{ recipient_iban: "GB" }` → 422 |
-| `invoice_missing_required_field_returns_422` | ❌ | empty body → 422 |
+| `login_empty_email_returns_422` |  ✅  | `{ email: "", password: "x" }` → 422 |
+| `transfer_amount_zero_returns_422` |  ✅  | `{ amount: 0, ... }` → 422 |
+| `transfer_amount_negative_returns_422` |  ✅  | `{ amount: -1, ... }` → 422 |
+| `transfer_iban_too_short_returns_422` |  ✅  | `{ recipient_iban: "GB" }` → 422 |
+| `invoice_missing_required_field_returns_422` |  ✅  | empty body → 422 |
 
 ---
 
@@ -696,8 +696,8 @@ assert_eq!(ok_count, 1);
 
 | Test | | Verify |
 |------|-|--------|
-| `transfer_creates_two_ledger_entries` | ❌ | One transfer → DEBIT on source + CREDIT on dest in `ledger_entries` |
-| `account_balance_matches_ledger_sum` | ❌ | `balance = SUM(credits) - SUM(debits)` reconciles after N transfers |
+| `transfer_creates_two_ledger_entries` | ✅ | One transfer → DEBIT on source + CREDIT on dest in `ledger_entries` |
+| `account_balance_matches_ledger_sum` | ✅ | `balance = SUM(credits) - SUM(debits)` reconciles after N transfers |
 
 ---
 
@@ -705,11 +705,11 @@ assert_eq!(ok_count, 1);
 
 | Test | File |
 |------|------|
-| `useMoneyFlow()` maps API response to `{ date, moneyIn, moneyOut }` | `hooks/useMoneyFlow.test.ts` |
-| Zod schema rejects `amount: 0` | `send-money-schema.test.ts` |
-| Zod schema rejects IBAN shorter than 15 chars | `send-money-schema.test.ts` |
-| `fmtDate()` formats ISO string correctly | `lib/utils/date.test.ts` |
-| `fingerprint()` dedupes identical error events | `lib/error-reporter.test.ts` |
+| `useMoneyFlow()` maps API response to `{ date, moneyIn, moneyOut }` | `hooks/useMoneyFlow.test.ts` | ✅
+| Zod schema rejects `amount: 0` | `send-money-schema.test.ts` |✅
+| Zod schema rejects IBAN shorter than 15 chars | `send-money-schema.test.ts` |✅
+| `fmtDate()` formats ISO string correctly | `lib/utils/date.test.ts` |✅
+| `fingerprint()` dedupes identical error events | `lib/error-reporter.test.ts` |✅
 
 ---
 
@@ -871,19 +871,19 @@ Cargo.toml                                             — Phase 6, 7
 [ ] Phase 7.6  — Add report() to all component onError callbacks✅
 [ ] Phase 7.7  — Backend self-reporting to bugreports table✅
 [ ] Phase 7.8  — Expand BugType (NotFound, AuthError, ApiError) + update query-client.ts✅
-[ ] Phase 8.1  — Auth tests (logout, admin-only rejection)
-[ ] Phase 8.2  — Accounts tests (404 nonexistent, isolation)
-[ ] Phase 8.3  — Transactions tests (filter, pagination, PDF, isolation)
-[ ] Phase 8.4  — Transfers tests (happy path, insufficient funds, 403, concurrent) ← HIGHEST PRIORITY
-[ ] Phase 8.5  — Recipients tests (CRUD, isolation)
-[ ] Phase 8.6  — Invoices tests (CRUD, status transitions, isolation)
-[ ] Phase 8.7  — Savings goals tests (CRUD, isolation)
-[ ] Phase 8.8  — Bug reports tests (filters, delete, charts)
-[ ] Phase 8.9  — Dashboard tests (shape validation, new stats endpoint)
-[ ] Phase 8.10 — Role accesses tests (admin vs regular user)
-[ ] Phase 8.11 — Input validation tests (after Phase 6)
-[ ] Phase 8.12 — Ledger consistency tests (after Phase 5)
-[ ] Phase 8.13 — Frontend Vitest tests (hooks, Zod schemas, utils)
+[ ] Phase 8.1  — Auth tests (logout, admin-only rejection)✅
+[ ] Phase 8.2  — Accounts tests (404 nonexistent, isolation)✅
+[ ] Phase 8.3  — Transactions tests (filter, pagination, PDF, isolation)✅
+[ ] Phase 8.4  — Transfers tests (happy path, insufficient funds, 403, concurrent) ← HIGHEST PRIORITY✅
+[ ] Phase 8.5  — Recipients tests (CRUD, isolation)✅
+[ ] Phase 8.6  — Invoices tests (CRUD, status transitions, isolation)✅
+[ ] Phase 8.7  — Savings goals tests (CRUD, isolation)✅
+[ ] Phase 8.8  — Bug reports tests (filters, delete, charts)✅
+[ ] Phase 8.9  — Dashboard tests (shape validation, new stats endpoint)✅
+[ ] Phase 8.10 — Role accesses tests (admin vs regular user)✅
+[ ] Phase 8.11 — Input validation tests (after Phase 6)✅
+[ ] Phase 8.12 — Ledger consistency tests (after Phase 5)✅
+[ ] Phase 8.13 — Frontend Vitest tests (hooks, Zod schemas, utils)✅
 [ ] Phase 9    — PWA config
 [ ] Phase 10   — Accessibility (axe-core audit + fixes)
 [ ] Phase 11   — Code cleanup

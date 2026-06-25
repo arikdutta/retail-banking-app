@@ -2,7 +2,7 @@ use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use serde_json::json;
 
 use super::db::RoleAccessesDb;
-use crate::domain::auth::middleware::{AuthUser, RootUser};
+use crate::domain::auth::middleware::{AdminUser, AuthUser, RootUser};
 use crate::state::AppState;
 
 /// GET /api/roleaccesses/mine — all authenticated users; returns caller's role grants from DB
@@ -20,8 +20,8 @@ pub async fn get_my_roles(State(state): State<AppState>, auth: AuthUser) -> impl
     }
 }
 
-/// GET /api/roleaccesses — Root only; returns all role grants with user info
-pub async fn get_all(State(state): State<AppState>, _root: RootUser) -> impl IntoResponse {
+/// GET /api/roleaccesses — Admin or Root; returns all role grants with user info
+pub async fn get_all(State(state): State<AppState>, _admin: AdminUser) -> impl IntoResponse {
     match RoleAccessesDb::get_all_with_users(&state.pool).await {
         Ok(grants) => Json(json!({ "grants": grants })).into_response(),
         Err(e) => {
