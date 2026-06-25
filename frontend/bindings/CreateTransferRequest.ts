@@ -8,4 +8,4 @@ to_recipient_unid: string | null,
 /**
  * Set for "transfer between own accounts" flow.
  */
-to_account_unid: string | null, amount: number, description: string | null, reference: string | null, };
+to_account_unid: string | null, amount: number, description: string | null, reference: string | null, recipient_iban: string | null, };

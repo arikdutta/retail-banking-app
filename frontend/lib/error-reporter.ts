@@ -12,7 +12,7 @@ export function setReporterUser(login: string | null) {
   currentUserLogin = login;
 }
 
-function fingerprint(bugType: BugType, message: string, stack?: string): string {
+export function fingerprint(bugType: BugType, message: string, stack?: string): string {
   const raw = `${bugType}:${message}:${stack ?? ""}`;
   let h = 0;
   for (let i = 0; i < raw.length; i++) {
