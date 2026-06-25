@@ -8,6 +8,7 @@ use rust_decimal::Decimal;
 use serde::Deserialize;
 use serde_json::json;
 use uuid::Uuid;
+use validator::Validate;
 
 use super::db::InvoicesDb;
 use super::model::{CreateInvoiceRequest, PayInvoiceRequest};
@@ -34,6 +35,7 @@ pub struct UpdateStatusRequest {
 }
 
 /// GET /api/invoices
+#[tracing::instrument(skip(user, state, params), fields(user_id = %user.unid))]
 pub async fn list_invoices(
     user: AuthUser,
     State(state): State<AppState>,
@@ -67,6 +69,7 @@ pub async fn list_invoices(
 }
 
 /// GET /api/invoices/:id
+#[tracing::instrument(skip(user, state), fields(user_id = %user.unid))]
 pub async fn get_invoice(
     user: AuthUser,
     State(state): State<AppState>,
@@ -74,11 +77,10 @@ pub async fn get_invoice(
 ) -> impl IntoResponse {
     match InvoicesDb::get_by_unid(&state.pool, id, user.unid).await {
         Ok(Some(invoice)) => Json(json!(invoice)).into_response(),
-        Ok(None) => (
-            StatusCode::NOT_FOUND,
-            Json(json!({"error": "invoice not found"})),
-        )
-            .into_response(),
+        Ok(None) => {
+            tracing::warn!(invoice_id = %id, "invoice not found");
+            (StatusCode::NOT_FOUND, Json(json!({"error": "invoice not found"}))).into_response()
+        }
         Err(e) => {
             tracing::error!("invoices get {id}: {e}");
             AppError::Internal.into_response()
@@ -87,11 +89,20 @@ pub async fn get_invoice(
 }
 
 /// POST /api/invoices
+#[tracing::instrument(skip(user, state), fields(user_id = %user.unid))]
 pub async fn create_invoice(
     user: AuthUser,
     State(state): State<AppState>,
     Json(body): Json<CreateInvoiceRequest>,
 ) -> impl IntoResponse {
+    if let Err(e) = body.validate() {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(json!({"error": e.to_string()})),
+        )
+            .into_response();
+    }
+
     match InvoicesDb::create(&state.pool, user.unid, body).await {
         Ok(invoice) => (StatusCode::CREATED, Json(json!(invoice))).into_response(),
         Err(e) => {
@@ -102,6 +113,7 @@ pub async fn create_invoice(
 }
 
 /// POST /api/invoices/:id/pay
+#[tracing::instrument(skip(user, state), fields(user_id = %user.unid))]
 pub async fn pay_invoice(
     user: AuthUser,
     State(state): State<AppState>,
@@ -111,6 +123,7 @@ pub async fn pay_invoice(
     let invoice = match InvoicesDb::get_by_unid(&state.pool, id, user.unid).await {
         Ok(Some(inv)) => inv,
         Ok(None) => {
+            tracing::warn!(invoice_id = %id, "invoice not found for payment");
             return (
                 StatusCode::NOT_FOUND,
                 Json(json!({"error": "invoice not found"})),
@@ -151,6 +164,7 @@ pub async fn pay_invoice(
     {
         Ok(Some(r)) => r,
         Ok(None) => {
+            tracing::warn!(invoice_id = %id, account_id = %body.from_account_unid, "account not found for invoice payment");
             return (
                 StatusCode::UNPROCESSABLE_ENTITY,
                 Json(json!({"error": "account not found"})),
@@ -164,6 +178,7 @@ pub async fn pay_invoice(
     };
 
     if src.user_unid != user.unid {
+        tracing::warn!(invoice_id = %id, "account ownership mismatch for invoice payment");
         return (
             StatusCode::UNPROCESSABLE_ENTITY,
             Json(json!({"error": "account not found"})),
@@ -171,6 +186,7 @@ pub async fn pay_invoice(
             .into_response();
     }
     if src.balance < invoice.amount {
+        tracing::warn!(invoice_id = %id, amount = %invoice.amount, "insufficient funds for invoice payment");
         return (
             StatusCode::UNPROCESSABLE_ENTITY,
             Json(json!({"error": "insufficient funds"})),
@@ -233,6 +249,7 @@ pub async fn pay_invoice(
 }
 
 /// PATCH /api/invoices/:id/status
+#[tracing::instrument(skip(user, state, body), fields(user_id = %user.unid))]
 pub async fn update_invoice_status(
     user: AuthUser,
     State(state): State<AppState>,
@@ -250,11 +267,10 @@ pub async fn update_invoice_status(
 
     match InvoicesDb::update_status(&state.pool, id, user.unid, &body.status).await {
         Ok(Some(invoice)) => Json(json!(invoice)).into_response(),
-        Ok(None) => (
-            StatusCode::NOT_FOUND,
-            Json(json!({"error": "invoice not found"})),
-        )
-            .into_response(),
+        Ok(None) => {
+            tracing::warn!(invoice_id = %id, "invoice not found for status update");
+            (StatusCode::NOT_FOUND, Json(json!({"error": "invoice not found"}))).into_response()
+        }
         Err(e) => {
             tracing::error!("invoices update status {id}: {e}");
             AppError::Internal.into_response()

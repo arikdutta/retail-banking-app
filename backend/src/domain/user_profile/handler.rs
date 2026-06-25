@@ -1,5 +1,6 @@
-use axum::{extract::State, response::IntoResponse, Json};
+use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use serde_json::json;
+use validator::Validate;
 
 use super::db::UserProfileDb;
 use super::model::UpdateProfileRequest;
@@ -8,6 +9,7 @@ use crate::error::AppError;
 use crate::state::AppState;
 
 /// GET /api/profile
+#[tracing::instrument(skip(user, state), fields(user_id = %user.unid))]
 pub async fn get_profile(user: AuthUser, State(state): State<AppState>) -> impl IntoResponse {
     match UserProfileDb::get(&state.pool, user.unid).await {
         Ok(Some(profile)) => Json(json!(profile)).into_response(),
@@ -33,11 +35,20 @@ pub async fn get_profile(user: AuthUser, State(state): State<AppState>) -> impl 
 }
 
 /// PUT /api/profile
+#[tracing::instrument(skip(user, state), fields(user_id = %user.unid))]
 pub async fn update_profile(
     user: AuthUser,
     State(state): State<AppState>,
     Json(body): Json<UpdateProfileRequest>,
 ) -> impl IntoResponse {
+    if let Err(e) = body.validate() {
+        return (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(json!({"error": e.to_string()})),
+        )
+            .into_response();
+    }
+
     match UserProfileDb::upsert(&state.pool, user.unid, body).await {
         Ok(profile) => Json(json!(profile)).into_response(),
         Err(e) => {

@@ -2,6 +2,7 @@ pub mod domain;
 pub mod error;
 pub mod pdf;
 pub mod state;
+pub mod tracing_bugreport_layer;
 
 use axum::http::StatusCode;
 use axum::{middleware, routing::get, Router};
