@@ -219,6 +219,7 @@ export function SendMoneyModal({ onClose, prefill }: Props) {
       amount: amountNum,
       description: description.trim() || null,
       reference: null,
+      recipient_iban: null,
     };
 
     const amountDisplay = formatAmountDisplay(fromAccount?.currency ?? "EUR", amountNum);
@@ -269,6 +270,7 @@ export function SendMoneyModal({ onClose, prefill }: Props) {
       amount: amountNum,
       description: ownDesc.trim() || null,
       reference: null,
+      recipient_iban: null,
     };
 
     const amountDisplay = formatAmountDisplay(ownFrom?.currency ?? "EUR", amountNum);

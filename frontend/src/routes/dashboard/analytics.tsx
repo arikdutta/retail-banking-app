@@ -77,8 +77,8 @@ function MonthlySpendChart({ from, to }: { from: Date; to: Date }) {
       const month = row.date.slice(0, 7);
       const existing = map.get(month) ?? { income: 0, expense: 0 };
       map.set(month, {
-        income: existing.income + Number(row.income),
-        expense: existing.expense + Number(row.expense),
+        income: existing.income + Number(row.moneyIn),
+        expense: existing.expense + Number(row.moneyOut),
       });
     }
     return Array.from(map.entries())
