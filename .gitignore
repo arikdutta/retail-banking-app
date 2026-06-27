@@ -4,5 +4,6 @@
 .env
 backend/.env
 frontend/.env
+frontend/.env.production
 
 __TMP/
