@@ -174,7 +174,7 @@ WHERE a.user_unid IN (
 );
 
 
--- ── savings_goals (all users)  ─────────────────────────────────────────────────
+-- ── savings_goals (all users) ─────────────────────────────────────────────────
 
 INSERT INTO savings_goals (unid, user_unid, name, current_amount, target_amount, currency) VALUES
     ('50a90001-d2e3-4567-abcd-789012345678', '00000000-0000-4000-8000-100000000001', 'Emergency Fund (6 mo)',  9500.00, 20000.00, 'USD'),
