@@ -55,7 +55,7 @@ function pageRange(current: number, total: number): (number | "…")[] {
   return pages;
 }
 
-// ─── Delete button with inline confirm ────────────────────────────────────────
+// ─── Delete button with inline confirm  ────────────────────────────────────────
 
 function DeleteButton({ recipient }: { recipient: Recipient }) {
   const [confirming, setConfirming] = useState(false);

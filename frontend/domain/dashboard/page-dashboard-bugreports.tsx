@@ -30,7 +30,7 @@ import {
 import type { BugType } from "@/bindings/BugType";
 import { queryKeys } from "@/lib/query-keys";
 
-const API_URL = import.meta.env["VITE_API_URL"] ?? "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
 type BugReport = {
   unid: string;

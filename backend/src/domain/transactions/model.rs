@@ -102,7 +102,7 @@ pub struct DonutStatRow {
     pub total: Decimal,
 }
 
-/// Aggregate stats for the dashboard stats row (last N days).
+/// Aggregate stats for the dashboard stats row (last N days) .
 #[derive(Debug, Serialize, sqlx::FromRow, TS)]
 #[ts(export, export_to = "../../frontend/bindings/")]
 pub struct DashboardStatsRow {
