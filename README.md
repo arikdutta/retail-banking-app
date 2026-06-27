@@ -2,6 +2,10 @@
 
 Fullstack retail banking app built with async Rust (Axum + Tokio) + TypeScript (TanStack Start). Features accounts, transfers, transactions, invoices, savings goals, role-based access control, and PDF generation.
 
+<img width="956" height="451" alt="rust_finance_compressed" src="https://github.com/user-attachments/assets/577f57f1-27cd-4a70-8fc1-b5d7831e75d7" />
+
+
+
 ## Run the project
 
 ```bash
