@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Pagination,
@@ -255,6 +256,7 @@ function DetailPanel({
           <button
             onClick={onPrev}
             disabled={!hasPrev}
+            aria-label="Previous invoice"
             className="p-1 rounded hover:bg-muted disabled:opacity-30"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -263,6 +265,7 @@ function DetailPanel({
           <button
             onClick={onNext}
             disabled={!hasNext}
+            aria-label="Next invoice"
             className="p-1 rounded hover:bg-muted disabled:opacity-30"
           >
             <ChevronRight className="h-4 w-4" />
@@ -271,6 +274,7 @@ function DetailPanel({
         <div className="flex items-center gap-1">
           <button
             onClick={() => downloadInvoice(invoice)}
+            aria-label="Download PDF"
             className="p-1 rounded hover:bg-muted text-muted-foreground"
             title="Download PDF"
           >
@@ -278,6 +282,7 @@ function DetailPanel({
           </button>
           <button
             onClick={onClose}
+            aria-label="Close invoice detail"
             className="p-1 rounded hover:bg-muted text-muted-foreground"
           >
             <X className="h-4 w-4" />
@@ -458,13 +463,17 @@ function CreateInvoiceModal({ onClose }: { onClose: () => void }) {
   const labelCls = "block text-xs font-medium text-muted-foreground mb-1";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-card border rounded-xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent
+        aria-describedby={undefined}
+        className="max-w-[calc(100%-2rem)] sm:max-w-md rounded-xl p-0 overflow-hidden"
+      >
         {/* Modal header */}
         <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h2 className="font-semibold text-sm">New Invoice</h2>
+          <DialogTitle>New Invoice</DialogTitle>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="p-1 rounded hover:bg-muted text-muted-foreground"
           >
             <X className="h-4 w-4" />
@@ -589,8 +598,8 @@ function CreateInvoiceModal({ onClose }: { onClose: () => void }) {
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -10,6 +10,7 @@ import { report } from "@/lib/error-reporter";
 import { BUG_TYPE } from "@/lib/bug-type";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useAccounts } from "@/hooks/data/use-accounts";
 import { useRecipients } from "@/hooks/data/use-recipients";
 import { useTransfer } from "@/hooks/data/use-transfers";
@@ -297,17 +298,11 @@ export function SendMoneyModal({ onClose, prefill }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <button
-        type="button"
-        aria-label="Close"
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-default"
-        onClick={onClose}
-      />
-      <div className="relative z-10 w-full max-w-sm rounded-2xl border bg-card p-6 shadow-xl">
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent aria-describedby={undefined}>
         {confirmPayload ? (
           <div className="space-y-4">
-            <h2 className="text-sm font-semibold">Confirm Transfer</h2>
+            <DialogTitle>Confirm Transfer</DialogTitle>
             <p className="text-sm text-muted-foreground">{confirmPayload.label}</p>
             <div className="flex gap-2 pt-1">
               <Button
@@ -332,7 +327,7 @@ export function SendMoneyModal({ onClose, prefill }: Props) {
           </div>
         ) : (
           <>
-            <h2 className="mb-4 text-sm font-semibold">Send Money</h2>
+            <DialogTitle className="mb-4">Send Money</DialogTitle>
 
             {/* Mode tabs */}
             <div className="mb-4 flex rounded-lg border overflow-hidden text-xs font-medium">
@@ -607,7 +602,7 @@ export function SendMoneyModal({ onClose, prefill }: Props) {
             )}
           </>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -285,6 +285,7 @@ function PersonalInfoPanel() {
             )}
             <button
               onClick={() => fileInputRef.current?.click()}
+              aria-label="Change profile photo"
               className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white"
             >
               <Camera className="h-3 w-3" />

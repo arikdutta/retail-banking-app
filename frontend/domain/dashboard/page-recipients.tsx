@@ -12,6 +12,7 @@ import {
   Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Pagination,
@@ -162,15 +163,9 @@ function CreateRecipientModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-xl"
-        onKeyDown={(e) => e.key === "Escape" && onClose()}
-      >
-        <h2 id={titleId} className="mb-4 text-sm font-semibold">Add Recipient</h2>
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent aria-describedby={undefined}>
+        <DialogTitle className="mb-4">Add Recipient</DialogTitle>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
@@ -236,8 +231,8 @@ function CreateRecipientModal({ onClose }: { onClose: () => void }) {
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
