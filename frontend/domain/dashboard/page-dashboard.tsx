@@ -204,8 +204,8 @@ function MoneyFlowChart() {
               contentStyle={{ borderRadius: 8, fontSize: 12, border: "1px solid hsl(var(--border))" }}
               formatter={(val) => [`$${Number(val).toLocaleString()}`, ""]}
             />
-            <Line type="monotone" dataKey="income"  stroke="#3B82F6" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
-            <Line type="monotone" dataKey="expense" stroke="#BFDBFE" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+            <Line type="monotone" dataKey="moneyIn"  stroke="#3B82F6" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+            <Line type="monotone" dataKey="moneyOut" stroke="#BFDBFE" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
           </LineChart>
         </ResponsiveContainer>
       )}
