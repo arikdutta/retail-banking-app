@@ -721,16 +721,16 @@ assert_eq!(ok_count, 1);
 
 ```ts
 VitePWA({
-  registerType: 'autoUpdate',
-  manifest: {
-    name: 'Retail Banking',
-    short_name: 'Banking',
-    theme_color: '#1a1a2e',
-    icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
-  },
-  workbox: {
-    globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-  },
+    registerType: 'autoUpdate',
+    manifest: {
+        name: 'Retail Banking',
+        short_name: 'Banking',
+        theme_color: '#1a1a2e',
+        icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
+    },
+    workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+    },
 })
 ```
 

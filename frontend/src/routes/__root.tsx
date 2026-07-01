@@ -54,6 +54,7 @@ export const Route = createRootRoute({
     links: [
       { rel: "stylesheet", href: globalsCss },
       { rel: "icon", href: "/favicon.ico?v=2" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
     ],
   }),
@@ -88,6 +89,17 @@ function MainContent({ children }: { children: React.ReactNode }) {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  // vite-plugin-pwa can't auto-inject registration (no index.html under
+  // TanStack Start/Nitro), so register the generated worker ourselves.
+  // registerType "autoUpdate" makes the SW self-updating (skipWaiting +
+  // clientsClaim), so a plain register call is all that's needed.
+  useEffect(() => {
+    if (import.meta.env.PROD && "serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch((err) => {
+        console.error("[pwa] service worker registration failed", err);
+      });
+    }
+  }, []);
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
