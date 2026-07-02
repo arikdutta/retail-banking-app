@@ -29,8 +29,15 @@ export default defineConfig({
     nitro(),
     VitePWA({
       registerType: "autoUpdate",
+      // No index.html in the TanStack Start/Nitro setup for auto-injection to
+      // rewrite — the SW is registered manually in src/routes/__root.tsx.
+      injectRegister: false,
+      // The plugin defaults to vite's build.outDir ("dist"), but Nitro serves
+      // .output/public — without this, sw.js is generated where nothing serves it.
+      outDir: ".output/public",
       includeAssets: ["favicon.ico", "apple-touch-icon.png"],
       workbox: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
         navigateFallback: null,
         cleanupOutdatedCaches: true,
       },

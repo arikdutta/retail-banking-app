@@ -1,4 +1,4 @@
-{
+ŚŚ{
   "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
   "assist": { "actions": { "source": { "organizeImports": "off" } } },
   "files": {
