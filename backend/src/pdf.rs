@@ -3,10 +3,10 @@ use std::sync::OnceLock;
 use chrono::{Datelike, Duration, NaiveDate, Utc};
 use typst::diag::{FileError, FileResult};
 use typst::foundations::{Bytes, Datetime};
-use typst::syntax::{FileId, Source, VirtualPath};
+use typst::syntax::{FileId, RootedPath, Source, VirtualPath, VirtualRoot};
 use typst::text::{Font, FontBook};
 use typst::utils::LazyHash;
-use typst::Library;
+use typst::{Library, LibraryExt};
 
 use crate::domain::transactions::model::Transaction;
 
@@ -34,7 +34,8 @@ struct StatementWorld {
 
 impl StatementWorld {
     fn new(source: String) -> Self {
-        let id = FileId::new(None, VirtualPath::new("/statement.typ"));
+        let vpath = VirtualPath::new("/statement.typ").expect("valid virtual path");
+        let id = FileId::new(RootedPath::new(VirtualRoot::Project, vpath));
         Self {
             library: LazyHash::new(Library::default()),
             source: Source::new(id, source),
@@ -57,21 +58,25 @@ impl typst::World for StatementWorld {
         if id == self.source.id() {
             Ok(self.source.clone())
         } else {
-            Err(FileError::NotFound(id.vpath().as_rootless_path().into()))
+            Err(FileError::NotFound(
+                std::path::Path::new(id.get().vpath().get_without_slash()).into(),
+            ))
         }
     }
 
     fn file(&self, id: FileId) -> FileResult<Bytes> {
-        Err(FileError::NotFound(id.vpath().as_rootless_path().into()))
+        Err(FileError::NotFound(
+            std::path::Path::new(id.get().vpath().get_without_slash()).into(),
+        ))
     }
 
     fn font(&self, index: usize) -> Option<Font> {
         fonts().1.get(index).cloned()
     }
 
-    fn today(&self, offset: Option<i64>) -> Option<Datetime> {
+    fn today(&self, offset: Option<typst::foundations::Duration>) -> Option<Datetime> {
         let now = Utc::now();
-        let dt = offset.map_or(now, |h| now + Duration::hours(h));
+        let dt = offset.map_or(now, |d| now + Duration::hours(d.hours() as i64));
         Datetime::from_ymd(dt.year(), dt.month() as u8, dt.day() as u8)
     }
 }

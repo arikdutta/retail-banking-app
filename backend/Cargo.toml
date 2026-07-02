@@ -33,9 +33,9 @@ pwhash       = "0.3"
 jsonwebtoken = "9"
 axum-extra   = { version = "0.10", features = ["cookie"] }
 time         = "0.3"
-typst        = "0.13"
-typst-pdf    = "0.13"
-typst-assets = { version = "0.13", features = ["fonts"] }
+typst        = "0.15"
+typst-pdf    = "0.15"
+typst-assets = { version = "0.15", features = ["fonts"] }
 reqwest      = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 base64       = "0.22"
 validator    = { version = "0.20", features = ["derive"] }
