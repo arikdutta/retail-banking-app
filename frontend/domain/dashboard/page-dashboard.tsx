@@ -40,6 +40,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { PromoBanner } from "@/domain/dashboard/promo-banner";
 import { SendMoneyModal, type SendMoneyPrefill } from "@/domain/dashboard/send-money-modal";
+import { StatementsModal } from "@/domain/dashboard/statements-modal";
+import { DepositModal } from "@/domain/dashboard/deposit-modal";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorCard } from "@/components/ui/error-card";
@@ -54,6 +56,9 @@ import { useSavings } from "@/hooks/data/use-savings";
 import { useDonutStats } from "@/hooks/data/use-donut-stats";
 import { useAccounts } from "@/hooks/data/use-accounts";
 import type { Transaction } from "@/bindings/Transaction";
+import { fmtShortDate } from "@/lib/utils/date";
+import { AVATAR_COLORS, SAVINGS_COLORS, DONUT_COLORS } from "@/lib/config/chart-colors";
+import { ACCOUNT_TYPE_META } from "@/lib/config/account-types";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
 
@@ -69,14 +74,6 @@ function useActivityFeed(limit = 10) {
     },
     staleTime: 1000 * 30,
   });
-}
-
-const AVATAR_COLORS = ["bg-purple-500", "bg-blue-600", "bg-green-500", "bg-indigo-500", "bg-rose-500"];
-const SAVINGS_COLORS = ["bg-blue-600", "bg-blue-400"];
-const DONUT_COLORS   = ["#3B82F6", "#93C5FD", "#DBEAFE"];
-
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -193,7 +190,7 @@ function MoneyFlowChart() {
         <ResponsiveContainer width="100%" height={200} className={isFetching ? "opacity-50 transition-opacity" : "transition-opacity"}>
           <LineChart data={data ?? []} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-            <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={fmtDate} />
+            <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={fmtShortDate} />
             <YAxis
               tick={{ fontSize: 11 }}
               tickLine={false}
@@ -250,7 +247,7 @@ function RecentTransactions() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{tx.description}</p>
-                <p className="text-xs text-muted-foreground">{fmtDate(tx.timestamp)}</p>
+                <p className="text-xs text-muted-foreground">{fmtShortDate(tx.timestamp)}</p>
               </div>
               <div className="text-right shrink-0">
                 <p className={cn("text-sm font-semibold", tx.amount > 0 ? "text-emerald-500" : "")}>
@@ -285,9 +282,10 @@ function WalletCard() {
   const balance = primary
     ? primary.balance.toLocaleString("en-US", { style: "currency", currency: primary.currency })
     : null;
+  const { gradient, brand } = primary ? ACCOUNT_TYPE_META[primary.account_type] : ACCOUNT_TYPE_META.checking;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 p-5 text-white shadow-lg">
+    <div className={cn("relative overflow-hidden rounded-2xl bg-gradient-to-br p-5 text-white shadow-lg", gradient)}>
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs opacity-70">Balance</p>
@@ -298,7 +296,7 @@ function WalletCard() {
           )}
         </div>
         <p className="text-xs font-bold tracking-widest opacity-80 mt-1">
-          {primary?.account_type.toUpperCase() ?? ""}
+          {primary ? brand : ""}
         </p>
       </div>
       <div className="mt-5 flex items-center justify-between">
@@ -317,7 +315,17 @@ function WalletCard() {
 
 const ACTION_CLS = "flex flex-col items-center gap-1.5 rounded-xl border bg-card p-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
 
-function WalletActions({ onSend, onReceive }: { onSend: () => void; onReceive: () => void }) {
+function WalletActions({
+  onSend,
+  onReceive,
+  onViewStatements,
+  onDeposit,
+}: {
+  onSend: () => void;
+  onReceive: () => void;
+  onViewStatements: () => void;
+  onDeposit: () => void;
+}) {
   return (
     <div className="grid grid-cols-4 gap-2">
       <button className={ACTION_CLS} onClick={onSend}>
@@ -342,9 +350,9 @@ function WalletActions({ onSend, onReceive }: { onSend: () => void; onReceive: (
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="center" className="w-44">
-          <DropdownMenuItem>View statements</DropdownMenuItem>
+          <DropdownMenuItem onClick={onViewStatements}>View statements</DropdownMenuItem>
           <DropdownMenuItem>Manage card</DropdownMenuItem>
-          <DropdownMenuItem>Deposit</DropdownMenuItem>
+          <DropdownMenuItem onClick={onDeposit}>Deposit</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem>Settings</DropdownMenuItem>
         </DropdownMenuContent>
@@ -407,7 +415,7 @@ function RecentActivity({ onSendAgain }: { onSendAgain: (prefill: SendMoneyPrefi
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium leading-tight truncate">{label}</p>
-                  <p className="text-[10px] text-muted-foreground">{fmtDate(tx.created_at)}</p>
+                  <p className="text-[10px] text-muted-foreground">{fmtShortDate(tx.created_at)}</p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <p className={cn("text-sm font-semibold", tx.amount > 0 ? "text-emerald-500" : "")}>
@@ -540,6 +548,8 @@ function StatisticsDonut() {
 
 export default function PageDashboard() {
   const [sendPrefill, setSendPrefill] = useState<SendMoneyPrefill | null>(null);
+  const [statementsOpen, setStatementsOpen] = useState(false);
+  const [depositOpen, setDepositOpen] = useState(false);
   const { data: accounts } = useAccounts();
 
   function openSend(prefill?: SendMoneyPrefill) {
@@ -565,6 +575,8 @@ export default function PageDashboard() {
           onClose={() => setSendPrefill(null)}
         />
       )}
+      {statementsOpen && <StatementsModal onClose={() => setStatementsOpen(false)} />}
+      {depositOpen && <DepositModal onClose={() => setDepositOpen(false)} />}
 
       {/* Left column */}
       <div className="flex flex-1 flex-col gap-5 min-w-0">
@@ -581,7 +593,7 @@ export default function PageDashboard() {
       {/* Right column */}
       <div className="flex w-72 shrink-0 flex-col gap-4">
         <WalletCard />
-        <WalletActions onSend={() => openSend()} onReceive={handleReceive} />
+        <WalletActions onSend={() => openSend()} onReceive={handleReceive} onViewStatements={() => setStatementsOpen(true)} onDeposit={() => setDepositOpen(true)} />
         <QuickTransfer onSend={() => openSend()} />
         <RecentActivity onSendAgain={(prefill) => openSend(prefill)} />
       </div>

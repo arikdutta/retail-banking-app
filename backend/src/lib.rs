@@ -14,6 +14,7 @@ pub fn build_app(state: AppState) -> Router {
     let protected = Router::new()
         .merge(domain::auth::protected_routes())
         .merge(domain::accounts::routes())
+        .merge(domain::deposits::routes())
         .merge(domain::transactions::routes())
         .merge(domain::invoices::routes())
         .merge(domain::recipients::routes())

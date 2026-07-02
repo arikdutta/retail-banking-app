@@ -299,7 +299,7 @@ export function SendMoneyModal({ onClose, prefill }: Props) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent aria-describedby={undefined}>
+      <DialogContent aria-describedby={undefined} className="max-w-sm">
         {confirmPayload ? (
           <div className="space-y-4">
             <DialogTitle>Confirm Transfer</DialogTitle>

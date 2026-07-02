@@ -13,7 +13,7 @@ import {
   Send,
   Download,
   FileText,
-  ShoppingCart,
+  Receipt,
   MoreVertical,
   CalendarIcon,
   CreditCard,
@@ -31,13 +31,9 @@ import { useAccounts } from "@/hooks/data/use-accounts";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useDashboardStats } from "@/hooks/data/use-dashboard-stats";
 import { SendMoneyModal } from "@/domain/dashboard/send-money-modal";
-
-const ACCOUNT_TYPE_META: Record<AccountType, { gradient: string; brand: string }> = {
-  checking:   { gradient: "from-blue-600 to-blue-700",       brand: "VISA" },
-  savings:    { gradient: "from-amber-400 to-amber-500",     brand: "MASTERCARD" },
-  business:   { gradient: "from-emerald-500 to-emerald-600", brand: "AMEX" },
-  investment: { gradient: "from-purple-500 to-purple-600",   brand: "DISCOVER" },
-};
+import { StatementsModal } from "@/domain/dashboard/statements-modal";
+import { DepositModal } from "@/domain/dashboard/deposit-modal";
+import { ACCOUNT_TYPE_META } from "@/lib/config/account-types";
 
 function formatBalance(balance: number, currency: string): string {
   return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(balance);
@@ -79,11 +75,11 @@ const CURRENCY_FLAGS: Record<string, string> = {
 };
 
 const quickLinks = [
-  { label: "Deposit",   icon: ArrowDownToLine, href: null },
-  { label: "Send",      icon: Send,            href: null },
-  { label: "Receive",   icon: Download,        href: null },
-  { label: "Invoicing", icon: FileText,        href: "/dashboard/invoices" },
-  { label: "Checkout",  icon: ShoppingCart,    href: null },
+  { label: "Deposit",          icon: ArrowDownToLine, href: null },
+  { label: "Send",             icon: Send,            href: null },
+  { label: "Receive",          icon: Download,        href: null },
+  { label: "Invoicing",        icon: FileText,        href: "/dashboard/invoices" },
+  { label: "Manage Statement", icon: Receipt,         href: null },
 ];
 
 // ─── Components ───────────────────────────────────────────────────────────────
@@ -119,6 +115,8 @@ export default function PageWallets() {
   const totalBalance = accounts.reduce((sum, a) => sum + a.balance, 0);
 
   const [sendOpen, setSendOpen] = useState(false);
+  const [statementsOpen, setStatementsOpen] = useState(false);
+  const [depositOpen, setDepositOpen] = useState(false);
 
   function handleReceive() {
     const iban = accounts[0]?.iban;
@@ -159,6 +157,8 @@ export default function PageWallets() {
   return (
     <div className="flex min-h-full gap-6 p-6">
       {sendOpen && <SendMoneyModal onClose={() => setSendOpen(false)} />}
+      {statementsOpen && <StatementsModal onClose={() => setStatementsOpen(false)} />}
+      {depositOpen && <DepositModal onClose={() => setDepositOpen(false)} />}
       {/* Left column */}
       <div className="flex w-72 shrink-0 flex-col gap-5">
         {/* Total balance */}
@@ -215,8 +215,10 @@ export default function PageWallets() {
                 </>
               );
               const onClick =
+                label === "Deposit" ? () => setDepositOpen(true) :
                 label === "Send" ? () => setSendOpen(true) :
                 label === "Receive" ? handleReceive :
+                label === "Manage Statement" ? () => setStatementsOpen(true) :
                 undefined;
               return href ? (
                 <Link key={label} to={href} className={cls}>{inner}</Link>

@@ -739,6 +739,7 @@ VitePWA({
 Generate 192×192 and 512×512 PNG icons. Place in `frontend/public/`.
 
 **Result:** App installable on mobile/desktop, works offline for cached routes. Strong showcase signal.
+Added icons to this location `Added icons to this location`
 
 ---
 
@@ -884,8 +885,8 @@ Cargo.toml                                             — Phase 6, 7
 [ ] Phase 8.11 — Input validation tests (after Phase 6)✅
 [ ] Phase 8.12 — Ledger consistency tests (after Phase 5)✅
 [ ] Phase 8.13 — Frontend Vitest tests (hooks, Zod schemas, utils)✅
-[ ] Phase 9    — PWA config
-[ ] Phase 10   — Accessibility (axe-core audit + fixes)
-[ ] Phase 11   — Code cleanup
+[ ] Phase 9    — PWA config✅
+[ ] Phase 10   — Accessibility (axe-core audit + fixes)✅
+[ ] Phase 11   — Code cleanup ✅
 [ ] Phase 12   — Stub pages
 ```

@@ -1,6 +1,7 @@
 pub mod accounts;
 pub mod auth;
 pub mod bugreports;
+pub mod deposits;
 pub mod invoices;
 pub mod ledger;
 pub mod recipients;

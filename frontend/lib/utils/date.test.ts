@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { fmtDate } from "./date";
+import { fmtDate, fmtShortDate } from "./date";
 
 describe("fmtDate", () => {
   it("strips time from a full ISO datetime", () => {
@@ -12,5 +12,11 @@ describe("fmtDate", () => {
 
   it("returns an already-date-only string unchanged", () => {
     expect(fmtDate("2024-12-31")).toBe("2024-12-31");
+  });
+});
+
+describe("fmtShortDate", () => {
+  it("formats an ISO datetime as month + day", () => {
+    expect(fmtShortDate("2024-06-15T10:30:00Z")).toBe("Jun 15");
   });
 });

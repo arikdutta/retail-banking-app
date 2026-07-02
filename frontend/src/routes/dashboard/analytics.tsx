@@ -23,19 +23,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorCard } from "@/components/ui/error-card";
 import { useMoneyFlow } from "@/hooks/data/use-money-flow";
 import { useBalanceHistory } from "@/hooks/data/use-balance-history";
+import { fmtShortDate } from "@/lib/utils/date";
+import { CHART_COLORS } from "@/lib/config/chart-colors";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3001";
-
-const CHART_COLORS = [
-  "#3B82F6",
-  "#6366F1",
-  "#8B5CF6",
-  "#EC4899",
-  "#F59E0B",
-  "#10B981",
-  "#F97316",
-  "#14B8A6",
-];
 
 function fmtMonth(yyyyMM: string) {
   const [year, month] = yyyyMM.split("-");
@@ -43,10 +34,6 @@ function fmtMonth(yyyyMM: string) {
     month: "short",
     year: "2-digit",
   });
-}
-
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 function capitalize(s: string) {
@@ -261,7 +248,7 @@ function BalanceChart({ from, to }: { from: Date; to: Date }) {
               tick={{ fontSize: 11 }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={fmtDate}
+              tickFormatter={fmtShortDate}
             />
             <YAxis
               tick={{ fontSize: 11 }}
@@ -282,7 +269,7 @@ function BalanceChart({ from, to }: { from: Date; to: Date }) {
                 })}`,
                 "Balance",
               ]}
-              labelFormatter={(label) => fmtDate(String(label ?? ""))}
+              labelFormatter={(label) => fmtShortDate(String(label ?? ""))}
             />
             <Area
               type="monotone"
