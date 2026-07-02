@@ -189,14 +189,14 @@ function LoginPage() {
             </div>
             <div className="leading-tight">
               <div className="text-sm font-bold text-gray-900">{APP_NAME}.</div>
-              <div className="text-[11px] text-gray-400">Banking</div>
+              <div className="text-[11px] text-gray-500">Banking</div>
             </div>
           </div>
 
           <h1 className="text-2xl font-extrabold text-gray-900 mb-0.5">
             Welcome Back!
           </h1>
-          <p className="text-sm text-gray-400 mb-6">Login to your account</p>
+          <p className="text-sm text-gray-500 mb-6">Login to your account</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1">
@@ -268,7 +268,7 @@ function LoginPage() {
             </div>
           </form>
 
-          <p className="mt-6 text-xs text-gray-400 text-center">
+          <p className="mt-6 text-xs text-gray-500 text-center">
             Don't have an account?{" "}
             <a
               href="#"
