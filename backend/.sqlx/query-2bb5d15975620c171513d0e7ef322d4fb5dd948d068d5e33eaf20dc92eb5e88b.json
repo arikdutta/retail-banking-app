@@ -1,0 +1,93 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO transactions (\n                account_unid, transaction_type, description, category,\n                amount, currency, counterparty_name, counterparty_iban, reference, status\n            )\n            VALUES ($1, 'credit', $2, 'deposit', $3, $4, $5, $6, NULL, 'completed')\n            RETURNING\n                unid, account_unid,\n                transaction_type AS \"transaction_type: _\",\n                description,\n                category AS \"category: _\",\n                amount, currency,\n                counterparty_name, counterparty_iban, reference,\n                status AS \"status: _\",\n                created_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "unid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "account_unid",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "transaction_type: _",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "category: _",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "amount",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 6,
+        "name": "currency",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "counterparty_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "counterparty_iban",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "reference",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "status: _",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 11,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Numeric",
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "2bb5d15975620c171513d0e7ef322d4fb5dd948d068d5e33eaf20dc92eb5e88b"
+}
