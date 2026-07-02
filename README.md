@@ -1,6 +1,6 @@
 # Fullstack Auth App (Rust + TS)
 
-Fullstack app using Rust (Axum) + TS (Tanstack start)
+Fullstack retail banking app built with async Rust (Axum + Tokio) + TypeScript (TanStack Start). Features accounts, transfers, transactions, invoices, savings goals, role-based access control, and PDF generation.
 
 ## Run the project
 
