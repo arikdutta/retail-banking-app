@@ -5,4 +5,14 @@ ignore = [
     # this project uses postgres only — the RSA code path is never executed.
     # No fix available upstream. Revisit when sqlx patches the dependency.
     "RUSTSEC-2023-0071",
+    # quick-xml issues (quadratic runtime / memory-exhaustion DoS), pulled in
+    # transitively (twice) via typst -> citationberg/hayagriva (CSL citation
+    # parsing) and typst -> syntect/plist (theme file parsing) for PDF statement
+    # generation. Neither citationberg (0.7.0) nor plist (1.9.0) — both at their
+    # latest crates.io releases as of 2026-07 — has bumped quick-xml to the
+    # patched >=0.41.0 line yet. The XML parsed here is bundled with the crates
+    # (citation styles / syntax themes), not attacker-controlled input, so these
+    # are not exploitable in this app. Revisit once upstream ships a fix.
+    "RUSTSEC-2026-0194",
+    "RUSTSEC-2026-0195",
 ]
