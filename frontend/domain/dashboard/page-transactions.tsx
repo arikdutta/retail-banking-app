@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
 import {
   Search, Filter, Upload, X, ChevronLeft, ChevronRight,
   FileDown, Loader2, Mail,
@@ -17,11 +16,11 @@ import {
 import { DateRangePicker, dateRangeSchema } from "@/components/date-range-picker";
 import { cn } from "@/lib/utils";
 import { useTransactions } from "@/hooks/data/use-transactions";
+import { useStatementExport } from "@/hooks/use-statement-export";
 import type { Transaction } from "@/bindings/Transaction";
 import type { TransactionStatus } from "../../../backend/bindings/TransactionStatus";
 import type { TransactionType } from "../../../backend/bindings/TransactionType";
 
-const API_URL = import.meta.env["VITE_API_URL"] ?? "http://localhost:3001";
 const routeApi = getRouteApi("/dashboard/transactions");
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
@@ -69,52 +68,6 @@ function formatTime(iso: string) {
 function formatAmount(amount: number, currency: string) {
   const prefix = amount >= 0 ? "+" : "";
   return `${prefix}${amount.toFixed(2)} ${currency}`;
-}
-
-// ─── PDF ──────────────────────────────────────────────────────────────────────
-
-async function downloadPdf(from: string, to: string, setDownloading: (v: boolean) => void) {
-  setDownloading(true);
-  try {
-    const res = await fetch(`${API_URL}/api/transactions/pdf?from=${from}&to=${to}`, {
-      credentials: "include",
-    });
-    if (!res.ok) throw new Error(`PDF generation failed: ${res.status}`);
-    const blob = await res.blob();
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
-    a.href     = url;
-    a.download = `transactions-${from}-to-${to}.pdf`;
-    a.click();
-    URL.revokeObjectURL(url);
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setDownloading(false);
-  }
-}
-
-async function emailPdf(
-  from: string,
-  to: string,
-  setEmailing: (v: boolean) => void,
-) {
-  setEmailing(true);
-  try {
-    const res = await fetch(`${API_URL}/api/transactions/email-statement?from=${from}&to=${to}`, {
-      method: "POST",
-      credentials: "include",
-    });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(body.error ?? `Email sending failed: ${res.status}`);
-    toast.success(`Statement sent to ${body.email}`);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Email sending failed";
-    console.error(err);
-    toast.error(message);
-  } finally {
-    setEmailing(false);
-  }
 }
 
 // ─── Pagination helper ────────────────────────────────────────────────────────
@@ -210,8 +163,7 @@ export default function PageTransactions() {
   const [search, setSearch]       = useState("");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [dateError, setDateError] = useState<string | undefined>(undefined);
-  const [downloading, setDownloading] = useState(false);
-  const [emailing, setEmailing] = useState(false);
+  const { downloading, emailing, downloadPdf, emailPdf } = useStatementExport();
 
   const { data, isLoading, isFetching } = useTransactions(page);
 
@@ -244,7 +196,7 @@ export default function PageTransactions() {
     setDateError(undefined);
     const from = format(parsedRange.data.from, "yyyy-MM-dd");
     const to   = format(parsedRange.data.to,   "yyyy-MM-dd");
-    downloadPdf(from, to, setDownloading);
+    downloadPdf(from, to);
   }
 
   function handleEmailPdf() {
@@ -256,7 +208,7 @@ export default function PageTransactions() {
     setDateError(undefined);
     const from = format(parsedRange.data.from, "yyyy-MM-dd");
     const to   = format(parsedRange.data.to, "yyyy-MM-dd");
-    emailPdf(from, to, setEmailing);
+    emailPdf(from, to);
   }
 
   return (

@@ -50,6 +50,7 @@ pub enum TransactionCategory {
     Fees,
     Insurance,
     Other,
+    Deposit,
 }
 
 #[derive(
